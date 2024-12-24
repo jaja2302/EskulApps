@@ -1,4 +1,4 @@
-<x-layouts.app>
+<x-layouts.guest>
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen">
         <!-- Navigation -->
@@ -196,4 +196,4 @@
             counterObserver.observe(counter);
         });
     </script>
-</x-layouts.app> 
+</x-layouts.guest> 
