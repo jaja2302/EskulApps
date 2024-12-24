@@ -3,15 +3,36 @@
     <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen">
         <!-- Navigation -->
         <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
-            <div class="w-full bg-blue-600 transition-all duration-300">
+            <div class="w-full backdrop-blur-md bg-blue-600/90 transition-all duration-300 shadow-lg">
                 <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <div class="text-white text-2xl font-bold">ExtraSchool</div>
-                    <div class="space-x-4">
-                        <a href="#" class="text-white hover:text-blue-200">About</a>
-                        <a href="#" class="text-white hover:text-blue-200">Activities</a>
-                        <a href="#" class="text-white hover:text-blue-200">Schedule</a>
-                        <a href="/login" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">Login</a>
+                    <div class="flex items-center space-x-2">
+                        <img src="{{ asset('images/logo.svg') }}" alt="Logo" class="h-8 w-8">
+                        <div class="text-white text-2xl font-bold">ExtraSchool</div>
                     </div>
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button type="button" class="text-white" id="mobile-menu-button">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Desktop menu -->
+                    <div class="hidden md:flex space-x-8">
+                        <a href="#about" class="text-white hover:text-blue-200 transition-colors">About</a>
+                        <a href="#activities" class="text-white hover:text-blue-200 transition-colors">Activities</a>
+                        <a href="#schedule" class="text-white hover:text-blue-200 transition-colors">Schedule</a>
+                        <a href="/login" class="bg-white text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50 transition-all transform hover:-translate-y-0.5">Login</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Mobile menu -->
+            <div class="hidden md:hidden" id="mobile-menu">
+                <div class="bg-blue-600/95 backdrop-blur-md px-4 pt-2 pb-3 space-y-1">
+                    <a href="#about" class="block text-white py-2">About</a>
+                    <a href="#activities" class="block text-white py-2">Activities</a>
+                    <a href="#schedule" class="block text-white py-2">Schedule</a>
+                    <a href="/login" class="block bg-white text-blue-600 px-4 py-2 rounded-lg mt-2">Login</a>
                 </div>
             </div>
         </nav>
@@ -22,14 +43,14 @@
                 <!-- Left Side -->
                 <div class="text-white" data-aos="fade-right">
                     <h1 class="text-4xl md:text-6xl font-bold mb-6">Discover Your Passion</h1>
-                    <p class="text-xl mb-8">Join our exciting extracurricular activities and develop your talents.</p>
+                    <p class="text-xl mb-8 text-blue-100">Join our exciting extracurricular activities and develop your talents.</p>
                     <div class="space-x-4">
                         <a href="#activities" 
-                           class="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 font-medium inline-block hover:-translate-y-1 transition-transform">
+                           class="bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-blue-50 font-medium inline-block hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl">
                             Explore Activities
                         </a>
-                        <a href="#register" 
-                           class="border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-white/10 font-medium inline-block hover:-translate-y-1 transition-transform">
+                        <a href="/register" 
+                           class="border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-blue-600 font-medium inline-block hover:-translate-y-1 transition-all duration-300">
                             Register Now
                         </a>
                     </div>
@@ -37,7 +58,7 @@
                 
                 <!-- Right Side -->
                 <div class="hidden md:block" data-aos="fade-left">
-                    <img src="{{ asset('images/students.svg') }}" alt="Students" class="w-full">
+                    <img src="{{ asset('images/students.svg') }}" alt="Students" class="w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-300">
                 </div>
             </div>
         </div>
@@ -155,13 +176,24 @@
 
     <!-- Add this script at the bottom of your page -->
     <script>
+        // Navbar functionality
+        const navbar = document.getElementById('navbar').querySelector('div');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // Mobile menu toggle
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
         // Navbar color change on scroll
         window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('navbar').querySelector('div');
             if (window.scrollY > 50) {
-                navbar.classList.add('bg-blue-600');
+                navbar.classList.add('bg-blue-600/95');
+                navbar.classList.add('shadow-lg');
             } else {
-                navbar.classList.remove('bg-blue-600');
+                navbar.classList.remove('bg-blue-600/95');
+                navbar.classList.remove('shadow-lg');
             }
         });
 

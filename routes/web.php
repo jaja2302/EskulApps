@@ -9,7 +9,7 @@ use Spatie\Permission\Middleware\PermissionMiddleware;
 use App\Livewire\Manageuser\Managementuser;
 use App\Livewire\Dashboard;
 Route::get('/', function () {
-    return view('auth.login');
+    return view('components.Login.index');
 });
 
 // Auth Routes

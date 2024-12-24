@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+    @auth
+        <script>window.location.href = "{{ route('dashboard') }}";</script>
+    @endauth
     <head>
         <meta charset="utf-8">
         <meta name="application-name" content="{{ config('app.name') }}">
@@ -7,6 +10,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name') }}</title>
         <style>[x-cloak] { display: none !important; }</style>
+        <!-- Add AOS CSS -->
+        <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
         @filamentStyles
         @vite('resources/css/app.css')
         <script>
@@ -19,24 +24,19 @@
         </script>
     </head>
     <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <!-- Simple header for guest pages -->
-        <nav class="bg-white dark:bg-gray-800 shadow">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex">
-                        <div class="flex-shrink-0 flex items-center">
-                            <span class="text-xl font-bold text-gray-800 dark:text-white">{{ config('app.name') }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
         <!-- Main Content -->
         <main>
             {{ $slot }}
         </main>
 
+        <!-- Add AOS JS -->
+        <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+        <script>
+            AOS.init({
+                duration: 1000,
+                once: true
+            });
+        </script>
         @filamentScripts
         @vite('resources/js/app.js')
     </body>
