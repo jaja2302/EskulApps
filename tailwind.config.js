@@ -23,6 +23,20 @@ module.exports = {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                coral: {
+                    50: '#fff5f2',
+                    100: '#ffe6e1',
+                    200: '#ffc9bc',
+                    300: '#ffa28e',
+                    400: '#ff7a5c',
+                    500: '#ff4d2e',
+                    600: '#ed3015',
+                    700: '#c5250f',
+                    800: '#9e2211',
+                    900: '#802012',
+                },
+            },
         },
     },
     plugins: [],

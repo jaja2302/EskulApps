@@ -16,5 +16,9 @@
         "postcss-nesting": "^13.0.1",
         "tailwindcss": "^3.4.17",
         "vite": "^6.0"
+    },
+    "dependencies": {
+        "viewport-extra": "^2.1.4",
+        "viewport-units-buggyfill": "^0.6.2"
     }
 }

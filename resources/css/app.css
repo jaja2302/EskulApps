@@ -1,4 +1,110 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@tailwind variants;
+
+/* Root variables */
+:root {
+    --vh: 1vh;
+}
+
+/* Base styles */
+.main-content {
+    min-height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Mobile navigation */
+@media (max-width: 767px) {
+    .sidebar {
+        @apply fixed bottom-0 left-0 right-0 
+               h-16 w-full 
+               flex justify-around items-center
+               bg-coral-500 dark:bg-gray-900 
+               shadow-lg
+               z-50;
+        padding-bottom: env(safe-area-inset-bottom, 0);
+    }
+
+    .main-content {
+        padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
+    }
+}
+
+/* Desktop navigation */
+@media (min-width: 768px) {
+    .sidebar {
+        @apply fixed left-6 top-1/2 -translate-y-1/2 
+               h-[500px] w-16 
+               flex flex-col items-center justify-center
+               bg-coral-500 dark:bg-gray-900 
+               rounded-full shadow-lg
+               z-50;
+    }
+
+    .main-content {
+        @apply ml-28;
+    }
+}
+
+/* Navigation icons */
+.nav-icon {
+    @apply w-12 h-12 
+           flex items-center justify-center
+           text-white/70 hover:text-white
+           transition-colors duration-300;
+}
+
+.nav-icon svg {
+    @apply w-6 h-6;
+}
+
+/* Tooltip styles */
+.tooltip {
+    @apply relative;
+}
+
+.tooltip-text {
+    @apply absolute bg-gray-900 dark:bg-gray-700
+           text-white text-sm py-1 px-3 rounded-lg
+           opacity-0 invisible
+           transition-all duration-200 whitespace-nowrap
+           z-[60];
+}
+
+/* Desktop tooltip */
+@media (min-width: 768px) {
+    .tooltip-text {
+        @apply left-14 top-1/2 -translate-y-1/2;
+    }
+
+    .tooltip-text::before {
+        content: '';
+        @apply absolute top-1/2 -left-2 -translate-y-1/2
+               border-solid border-8
+               border-transparent border-r-gray-900
+               dark:border-r-gray-700;
+    }
+}
+
+/* Mobile tooltip */
+@media (max-width: 767px) {
+    .tooltip-text {
+        @apply bottom-14 left-1/2 -translate-x-1/2;
+    }
+
+    .tooltip-text::before {
+        content: '';
+        @apply absolute -bottom-2 left-1/2 -translate-x-1/2
+               border-solid border-8
+               border-transparent border-t-gray-900
+               dark:border-t-gray-700;
+    }
+}
+
+.tooltip:hover .tooltip-text {
+    @apply opacity-100 visible;
+}
+
+/* Filament compatibility */
+.fi-layout {
+    z-index: 40 !important;
+}
