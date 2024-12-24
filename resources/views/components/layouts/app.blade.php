@@ -37,7 +37,7 @@
                         </li>
                         @role('admin')
                         <li>
-                            <a href="#" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                            <a href="{{ route('manageusers') }}" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                                 <span>Manage Users</span>
                             </a>
                         </li>

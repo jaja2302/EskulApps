@@ -4,9 +4,12 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
+use Spatie\Permission\Middleware\RoleMiddleware;
+use Spatie\Permission\Middleware\PermissionMiddleware;
+use App\Livewire\Manageuser\Managementuser;
 
 Route::get('/', function () {
-    return view('components.login.index');
+    return view('auth.login');
 });
 
 // Auth Routes
@@ -20,5 +23,12 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::group(['middleware' => ['role:admin']], function () {
+      
+    });
+    // Admin routes using the new Laravel 11 syntax
+    Route::middleware(RoleMiddleware::using('admin'))->group(function () {
+        Route::get('/manage-users', Managementuser::class)->name('manageusers');
+    });
 });
 
