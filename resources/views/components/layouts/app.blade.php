@@ -57,6 +57,15 @@
                                    bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Settings</span>
                     </a>
 
+                    @role('admin')
+                    <!-- Manage Users -->   
+                    <a href="{{ route('manageusers') }}" 
+                       class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
+                        <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.333c-4.8 0-8.627 3.828-8.627 8.667 0 4.839 3.827 8.667 8.627 8.667s8.627-3.828 8.627-8.667c0-4.839-3.827-8.667-8.627-8.667zM2.666 12c0-4.839 3.827-8.667 8.627-8.667s8.627 3.828 8.627 8.667c0 4.839-3.827 8.667-8.627 8.667s-8.627-3.828-8.627-8.667z"/>
+                        </svg>
+                    </a>
+                    @endrole
                     <!-- Dark mode toggle -->
                     <button type="button"
                             class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"

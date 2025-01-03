@@ -23,9 +23,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
-    Route::group(['middleware' => ['role:admin']], function () {
-        
-    });
+
     // Admin routes using the new Laravel 11 syntax
     Route::middleware(RoleMiddleware::using('admin'))->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
