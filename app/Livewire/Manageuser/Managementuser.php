@@ -152,7 +152,7 @@ class Managementuser extends Component implements HasForms, HasTable
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'success',
-                        'pelatih' => 'warning',
+                        'pelatih' => 'info',
                         'wakil_pelatih' => 'info',
                         'siswa' => 'primary',
                         default => 'secondary',

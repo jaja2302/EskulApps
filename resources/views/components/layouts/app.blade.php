@@ -36,7 +36,7 @@
                                    bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Home</span>
                     </a>
 
-                    @can('create eskul')
+                    @role('admin')
                     <!-- Documents -->
                     <a href="{{ route('dashboard.eskul') }}" 
                        class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
@@ -45,9 +45,8 @@
                         </svg>
                         <span class="tooltip-text md:left-14 md:top-auto md:-translate-y-1/2 bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Dashboard Eskul</span>
                     </a>
-                    @endcan
-
-                    @role('admin')
+      
+   
                     <!-- Manage Users -->   
                     <a href="{{ route('manageusers') }}" 
                        class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
@@ -124,7 +123,11 @@
 
                 <!-- Centered Content Container -->
                 <div class="p-8">
-                    {{ $slot }}
+                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                        <div class="p-6 text-gray-900">
+                            {{ $slot }}
+                        </div>
+                    </div>
                 </div>
             </div>
 
