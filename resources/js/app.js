@@ -1,4 +1,4 @@
-import './bootstrap';
+
 
 // Simple viewport handler
 function handleViewport() {

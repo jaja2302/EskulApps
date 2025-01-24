@@ -15,11 +15,25 @@ use Filament\Tables\Actions\CreateAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Spatie\Permission\Models\Role;
+use Livewire\WithFileUploads;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\UsersImport;
+use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Collection;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 
 class Managementuser extends Component implements HasForms, HasTable
 {
     use InteractsWithTable;
     use InteractsWithForms;
+    use WithFileUploads;
+
+   
 
     public function table(Table $table): Table
     {
@@ -52,7 +66,82 @@ class Managementuser extends Component implements HasForms, HasTable
                         $user->assignRole($data['roles']);
                         
                         return $user;
-                    })
+                    }),
+                Action::make('import')
+                    ->label('Import Excel')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->form([
+                        FileUpload::make('excelFile')
+                            ->label('File Excel')
+                            ->acceptedFileTypes(['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+                            ->directory('temp')
+                            ->required()
+                            ->visibility('public')
+                    ])
+                    ->action(function (array $data): void {
+                        try {
+                            if (!isset($data['excelFile'])) {
+                                Notification::make()
+                                    ->title('Error')
+                                    ->body('No file was uploaded')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            $path = storage_path('app/public/' . $data['excelFile']);
+                            
+                            if (!file_exists($path)) {
+                                Notification::make()
+                                    ->title('Error')
+                                    ->body('File not found at: ' . $path)
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            DB::beginTransaction();
+                            
+                            $import = new UsersImport();
+                            Excel::import($import, $path);
+
+                            // Check if there were any errors during import
+                            $errors = $import->getErrors();
+                            if (!empty($errors)) {
+                                DB::rollBack();
+                                
+                                Notification::make()
+                                    ->title('Import Failed')
+                                    ->body(implode("\n", $errors))
+                                    ->danger()
+                                    ->send();
+                                    
+                                return;
+                            }
+
+                            DB::commit();
+
+                            // Clean up the temporary file
+                            if (file_exists($path)) {
+                                unlink($path);
+                            }
+
+                            Notification::make()
+                                ->title('Success')
+                                ->body('Users imported successfully')
+                                ->success()
+                                ->send();
+
+                        } catch (\Exception $e) {
+                            DB::rollBack();
+                            
+                            Notification::make()
+                                ->title('Error')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ])
             ->columns([
                 TextColumn::make('name'),
@@ -74,15 +163,94 @@ class Managementuser extends Component implements HasForms, HasTable
                 // ...
             ])
             ->actions([
-                // ...
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Delete User')
+                    ->modalDescription('Are you sure you want to delete this user? This action cannot be undone.')
+                    ->modalSubmitActionLabel('Yes, delete user')
+                    ->modalCancelActionLabel('No, cancel')
+                    ->action(function (User $record) {
+                        try {
+                            DB::beginTransaction();
+                            
+                            // Remove all roles first
+                            $record->roles()->detach();
+                            
+                            // Then delete the user
+                            $record->delete();
+                            
+                            DB::commit();
+
+                            Notification::make()
+                                ->title('Success')
+                                ->body('User deleted successfully')
+                                ->success()
+                                ->send();
+
+                        } catch (\Exception $e) {
+                            DB::rollBack();
+                            
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Failed to delete user: ' . $e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
             ])
             ->bulkActions([
-                // ...
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Delete Selected Users')
+                        ->modalDescription('Are you sure you want to delete these users? This action cannot be undone.')
+                        ->modalSubmitActionLabel('Yes, delete users')
+                        ->modalCancelActionLabel('No, cancel')
+                        ->action(function (Collection $records) {
+                            try {
+                                DB::beginTransaction();
+                                
+                                foreach ($records as $record) {
+                                    // Remove all roles first
+                                    $record->roles()->detach();
+                                    
+                                    // Then delete the user
+                                    $record->delete();
+                                }
+                                
+                                DB::commit();
+
+                                Notification::make()
+                                    ->title('Success')
+                                    ->body('Selected users deleted successfully')
+                                    ->success()
+                                    ->send();
+
+                            } catch (\Exception $e) {
+                                DB::rollBack();
+                                
+                                Notification::make()
+                                    ->title('Error')
+                                    ->body('Failed to delete users: ' . $e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                ])
             ]);
     }
     
     public function render(): View
     {
-        return view('livewire.manageuser.managementuser');
+        $rolePermissions = [
+            'admin' => Role::findByName('admin')->permissions->pluck('name'),
+            'pelatih' => Role::findByName('pelatih')->permissions->pluck('name'),
+            'wakil_pelatih' => Role::findByName('wakil_pelatih')->permissions->pluck('name'),
+            'siswa' => Role::findByName('siswa')->permissions->pluck('name'),
+        ];
+
+        return view('livewire.manageuser.managementuser', [
+            'rolePermissions' => $rolePermissions
+        ]);
     }
 }

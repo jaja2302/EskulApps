@@ -8,6 +8,8 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use App\Livewire\Manageuser\Managementuser;
 use App\Livewire\Dashboard;
+use App\Livewire\DashboardEskul;
+
 Route::get('/', function () {
     return view('components.Login.index');
 });
@@ -28,5 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware(RoleMiddleware::using('admin'))->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
     });
+
+
+    Route::middleware(PermissionMiddleware::using('create eskul'))->group(function () {
+        Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
+    });
 });
+
 

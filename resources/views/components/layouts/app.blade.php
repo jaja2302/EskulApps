@@ -14,7 +14,7 @@
             }
         </style>
         @filamentStyles
-        @vite('resources/css/app.css')
+        @vite('resources/css/app.css','resources/js/app.js')
     </head>
     <body class="min-h-screen dark:bg-gray-900 transition-colors duration-300">
         <div class="flex min-h-screen">
@@ -36,16 +36,28 @@
                                    bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Home</span>
                     </a>
 
+                    @can('create eskul')
                     <!-- Documents -->
-                    <a href="#" 
+                    <a href="{{ route('dashboard.eskul') }}" 
                        class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
                         <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                         </svg>
-                        <span class="tooltip-text md:left-14 md:top-auto md:-translate-y-1/2 
-                                   bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Documents</span>
+                        <span class="tooltip-text md:left-14 md:top-auto md:-translate-y-1/2 bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Dashboard Eskul</span>
                     </a>
+                    @endcan
 
+                    @role('admin')
+                    <!-- Manage Users -->   
+                    <a href="{{ route('manageusers') }}" 
+                       class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
+                        <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.333c-4.8 0-8.627 3.828-8.627 8.667 0 4.839 3.827 8.667 8.627 8.667s8.627-3.828 8.627-8.667c0-4.839-3.827-8.667-8.627-8.667zM2.666 12c0-4.839 3.827-8.667 8.627-8.667s8.627 3.828 8.627 8.667c0 4.839-3.827 8.667-8.627 8.667s-8.627-3.828-8.627-8.667z"/>
+                        </svg>
+                        <span class="tooltip-text md:left-14 md:top-auto md:-translate-y-1/2 bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Manage Users</span>
+                    </a>
+                    @endrole
+                    
                     <!-- Settings -->
                     <a href="#" 
                        class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
@@ -56,16 +68,6 @@
                         <span class="tooltip-text md:left-14 md:top-auto md:-translate-y-1/2 
                                    bottom-14 left-1/2 -translate-x-1/2 md:translate-x-0">Settings</span>
                     </a>
-
-                    @role('admin')
-                    <!-- Manage Users -->   
-                    <a href="{{ route('manageusers') }}" 
-                       class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
-                        <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.333c-4.8 0-8.627 3.828-8.627 8.667 0 4.839 3.827 8.667 8.627 8.667s8.627-3.828 8.627-8.667c0-4.839-3.827-8.667-8.627-8.667zM2.666 12c0-4.839 3.827-8.667 8.627-8.667s8.627 3.828 8.627 8.667c0 4.839-3.827 8.667-8.627 8.667s-8.627-3.828-8.627-8.667z"/>
-                        </svg>
-                    </a>
-                    @endrole
                     <!-- Dark mode toggle -->
                     <button type="button"
                             class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
@@ -131,9 +133,8 @@
                 &copy; {{ date('Y') }} ELsa canteek. All rights reserved.
             </footer>
         </div>
-
+        @livewire('notifications')
         @filamentScripts
-        @vite('resources/js/app.js')
         @stack('scripts')
     </body>
 </html>
