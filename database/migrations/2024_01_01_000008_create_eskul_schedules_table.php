@@ -8,19 +8,21 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('coach_assignments', function (Blueprint $table) {
+        Schema::create('eskul_schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
             $table->foreignId('eskul_id')->constrained('eskuls');
-            $table->enum('role', ['pelatih', 'wakil_pelatih']);
+            $table->string('day');
+            $table->time('start_time');
+            $table->time('end_time');
+            $table->string('location');
+            $table->text('notes')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
-
-            $table->unique(['user_id', 'eskul_id']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('coach_assignments');
+        Schema::dropIfExists('eskul_schedules');
     }
 }; 

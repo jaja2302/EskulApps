@@ -45,27 +45,92 @@ class RoleAndPermissionSeeder extends Seeder
             'edit test',
             'delete test',
             'take test',
+            'view test result',
+
+            // Member management
+            'register eskul',
+            'approve member',
+            'reject member',
             
             // User management
             'manage users',
             'manage staff',
+
+            // Profile & Gallery permissions
+            'view profile',
+            'edit profile',
+            'upload photo',
+            'view gallery',
+            'manage gallery',
+            'manage achievements',
+            
+            // Report permissions
+            'generate report',
+            'export data',
+            'view statistics',
+            
+            // Communication permissions
+            'send announcement',
+            'create discussion',
+            'reply discussion',
+            'manage comments',
+            
+            // Achievement & Certificate
+            'create certificate',
+            'issue certificate',
+            'view achievements',
+            
+            // Event Management
+            'create event',
+            'edit event',
+            'delete event',
+            'register event',
+            
+            // Evaluation System
+            'create evaluation',
+            'submit evaluation',
+            'view evaluation',
+            
+            // File Management
+            'upload materials',
+            'download materials',
+            'manage documents',
         ];
 
+        // Create all permissions
         foreach ($permissions as $permission) {
             Permission::create(['name' => $permission]);
         }
 
         // Create roles and assign permissions
         
-        // Kepala Sekolah / Admin
+        // Admin
         $adminRole = Role::create(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
+
+        // Pembimbing
+        $pembimbingRole = Role::create(['name' => 'pembimbing']);
+        $pembimbingRole->givePermissionTo([
+            'view eskul',
+            'view schedule',
+            'view attendance',
+            'view bulletin',
+            'view test',
+            'view profile',
+            'view gallery',
+            'view statistics',
+            'view evaluation',
+            'generate report',
+            'view achievements',
+            'send announcement',
+            'reply discussion',
+            'download materials',
+        ]);
 
         // Pelatih
         $pelatihRole = Role::create(['name' => 'pelatih']);
         $pelatihRole->givePermissionTo([
             'view eskul',
-            'manage eskul members',
             'view schedule',
             'create schedule',
             'edit schedule',
@@ -81,27 +146,25 @@ class RoleAndPermissionSeeder extends Seeder
             'create test',
             'edit test',
             'delete test',
-        ]);
-
-        // Wakil Pelatih
-        $wakilPelatihRole = Role::create(['name' => 'wakil_pelatih']);
-        $wakilPelatihRole->givePermissionTo([
-            'view eskul',
-            'view schedule',
-            'create schedule',
-            'edit schedule',
-            'delete schedule',
-            'view attendance',
-            'create attendance',
-            'edit attendance',
-            'view bulletin',
-            'create bulletin',
-            'edit bulletin',
-            'delete bulletin',
-            'view test',
-            'create test',
-            'edit test',
-            'delete test',
+            'edit profile',
+            'upload photo',
+            'view gallery',
+            'manage gallery',
+            'create certificate',
+            'issue certificate',
+            'create event',
+            'edit event',
+            'delete event',
+            'create evaluation',
+            'view evaluation',
+            'upload materials',
+            'download materials',
+            'send announcement',
+            'create discussion',
+            'reply discussion',
+            'manage comments',
+            'approve member',
+            'reject member',
         ]);
 
         // Siswa
@@ -113,6 +176,14 @@ class RoleAndPermissionSeeder extends Seeder
             'view bulletin',
             'view test',
             'take test',
+            'view profile',
+            'view gallery',
+            'register event',
+            'submit evaluation',
+            'download materials',
+            'reply discussion',
+            'view achievements',
+            'register eskul',
         ]);
     }
 } 
