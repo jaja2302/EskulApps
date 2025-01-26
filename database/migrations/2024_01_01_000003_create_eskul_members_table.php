@@ -8,13 +8,15 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('student_registrations', function (Blueprint $table) {
+        Schema::create('eskul_members', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('users');
             $table->foreignId('eskul_id')->constrained('eskuls');
-            $table->enum('status', ['pending', 'diterima', 'ditolak'])->default('pending');
-            $table->foreignId('processed_by')->nullable()->constrained('users');
-            $table->timestamp('processed_at')->nullable();
+            $table->foreignId('added_by')->constrained('users'); // Admin/Pelatih yang menambahkan
+            $table->boolean('is_active')->default(true);
+            $table->date('join_date');
+            $table->date('end_date')->nullable();
+            $table->text('notes')->nullable();
             $table->timestamps();
 
             $table->unique(['student_id', 'eskul_id']);
@@ -23,6 +25,6 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('student_registrations');
+        Schema::dropIfExists('eskul_members');
     }
 }; 

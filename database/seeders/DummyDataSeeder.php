@@ -46,18 +46,6 @@ class DummyDataSeeder extends Seeder
             $pelatihs[] = $pelatih;
         }
 
-        // Create Wakil Pelatih (optional)
-        $wakilPelatihs = [];
-        for ($i = 1; $i <= 5; $i++) {
-            $wakilPelatih = User::create([
-                'name' => "Wakil Pelatih {$i}",
-                'email' => "wakilpelatih{$i}@example.com",
-                'password' => Hash::make('password123'),
-            ]);
-            $wakilPelatih->assignRole('pelatih');
-            $wakilPelatihs[] = $wakilPelatih;
-        }
-
         // Create Eskul
         $eskulNames = [
             'Basket', 'Futsal', 'Pramuka', 'PMR', 'Musik', 
@@ -71,7 +59,7 @@ class DummyDataSeeder extends Seeder
                 'description' => $faker->paragraph(),
                 'image' => 'eskul/default.jpg', // Pastikan ada default image
                 'pelatih_id' => $pelatihs[$index]->id,
-                'wakil_pelatih_id' => $wakilPelatihs[array_rand($wakilPelatihs, 1)]->id,
+                'pembimbing_id' => $pembimbings[array_rand($pembimbings, 1)]->id,
                 'quota' => rand(20, 30),
                 'is_active' => true,
                 'meeting_location' => $faker->randomElement(['Lapangan', 'Aula', 'Ruang Kelas A1', 'Lab Komputer', 'Studio Musik']),
@@ -81,8 +69,8 @@ class DummyDataSeeder extends Seeder
             $eskuls[] = $eskul;
         }
 
-        // Create Siswa (tanpa pendaftaran eskul)
-        for ($i = 1; $i <= 20; $i++) {
+        // Create Siswa
+        for ($i = 1; $i <= 110; $i++) {
             $siswa = User::create([
                 'name' => $faker->name,
                 'email' => "siswa{$i}@example.com",

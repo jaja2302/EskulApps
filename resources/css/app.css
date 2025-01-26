@@ -9,7 +9,17 @@
 
 /* Base styles */
 .main-content {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
     min-height: calc(var(--vh, 1vh) * 100);
+    padding-bottom: calc(theme('spacing.16') + env(safe-area-inset-bottom, 0px));
+}
+
+@screen md {
+    .main-content {
+        min-height: 100vh;
+    }
 }
 
 /* Mobile navigation */
@@ -18,13 +28,13 @@
         @apply fixed bottom-0 left-0 right-0 
                h-16 w-full 
                flex justify-around items-center
-               bg-coral-500 dark:bg-gray-900 
+               bg-primary-500 dark:bg-gray-800
                shadow-lg
                z-50;
         padding-bottom: env(safe-area-inset-bottom, 0);
     }
 
-    .main-content {
+    main {
         padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
     }
 }
@@ -33,11 +43,17 @@
 @media (min-width: 768px) {
     .sidebar {
         @apply fixed left-6 top-1/2 -translate-y-1/2 
-               h-[500px] w-16 
                flex flex-col items-center justify-center
-               bg-coral-500 dark:bg-gray-900 
+               bg-primary-500 dark:bg-gray-800
                rounded-full shadow-lg
                z-50;
+        /* Menghitung tinggi dinamis: 
+           48px (tinggi icon) + 24px (gap) per item + 48px (padding atas bawah) */
+        height: calc(var(--nav-items, 3) * 48px + (var(--nav-items, 3) - 1) * 24px + 48px);
+    }
+
+    .sidebar nav {
+        height: 100%;
     }
 
     .main-content {
@@ -107,4 +123,158 @@
 /* Filament compatibility */
 .fi-layout {
     z-index: 40 !important;
+}
+
+/* Tambahkan styles untuk table container */
+.table-container {
+    @apply relative overflow-x-auto shadow-md sm:rounded-lg;
+    min-height: 200px; /* Minimum height untuk tabel */
+    max-height: calc(100vh - 300px); /* Maximum height dengan mempertimbangkan header & footer */
+}
+
+/* Style untuk loading state */
+.table-loading {
+    @apply absolute inset-0 bg-white/50 dark:bg-gray-900/50 
+           flex items-center justify-center;
+}
+
+/* Content Container */
+.max-w-7xl {
+    max-width: 80rem; /* atau sesuaikan dengan kebutuhan */
+}
+
+/* Card styles */
+.card {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-sm;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    @apply shadow-md;
+}
+
+/* Table Container */
+.filament-tables-container {
+    @apply rounded-lg overflow-hidden;
+}
+
+/* Responsive padding */
+@screen sm {
+    .content-padding {
+        @apply px-6;
+    }
+}
+
+@screen lg {
+    .content-padding {
+        @apply px-8;
+    }
+}
+
+/* Header styles */
+.header-backdrop {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm;
+}
+
+/* Custom transitions */
+.custom-transition {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}
+
+/* Primary colors - sesuaikan dengan tema Anda */
+.bg-primary-100 {
+    @apply bg-coral-100;
+}
+
+.bg-primary-800 {
+    @apply bg-coral-800;
+}
+
+.text-primary-600 {
+    @apply text-coral-600;
+}
+
+.text-primary-200 {
+    @apply text-coral-200;
+}
+
+/* Dropdown transitions */
+.dropdown-enter {
+    transition-property: opacity, transform;
+    transition-duration: 100ms;
+    transition-timing-function: ease-out;
+}
+
+.dropdown-enter-from {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.dropdown-enter-to {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.dropdown-leave {
+    transition-property: opacity, transform;
+    transition-duration: 75ms;
+    transition-timing-function: ease-in;
+}
+
+.dropdown-leave-from {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.dropdown-leave-to {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+/* Header styles */
+.header-gradient {
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 77, 46, 0.05),
+        rgba(237, 48, 21, 0.05)
+    );
+}
+
+.dark .header-gradient {
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 77, 46, 0.02),
+        rgba(237, 48, 21, 0.02)
+    );
+}
+
+/* Button styles */
+.btn {
+    @apply flex items-center justify-center px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium;
+}
+
+.btn-primary {
+    @apply bg-coral-500 text-white hover:bg-coral-600;
+}
+
+.btn-secondary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+    .filament-tables-container {
+        @apply rounded-none border-none;
+    }
+
+    .filament-tables-table-container {
+        @apply overflow-x-auto;
+    }
+
+    /* Make buttons more touchable on mobile */
+    .btn {
+        @apply py-3 text-base;
+    }
 }

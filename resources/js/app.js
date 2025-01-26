@@ -1,5 +1,3 @@
-
-
 // Simple viewport handler
 function handleViewport() {
     // Set viewport height
@@ -15,3 +13,12 @@ window.addEventListener('orientationchange', () => {
 
 // Initial call
 handleViewport();
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Count nav items and set CSS variable
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        const navItems = sidebar.querySelectorAll('.nav-icon').length;
+        document.documentElement.style.setProperty('--nav-items', navItems);
+    }
+});

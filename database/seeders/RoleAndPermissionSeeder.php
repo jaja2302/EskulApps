@@ -21,6 +21,7 @@ class RoleAndPermissionSeeder extends Seeder
             'edit eskul',
             'delete eskul',
             'manage eskul members',
+            'view eskul members',
             
             // Schedule permissions
             'view schedule',

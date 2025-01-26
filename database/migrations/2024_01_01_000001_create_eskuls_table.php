@@ -13,8 +13,14 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->string('image');
-            $table->unsignedBigInteger('pelatih_id');
-            $table->unsignedBigInteger('wakil_pelatih_id')->nullable();
+            $table->string('banner_image')->nullable();
+            $table->foreignId('pelatih_id')->constrained('users');
+            $table->foreignId('pembimbing_id')->nullable()->constrained('users');
+            $table->integer('quota')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->string('meeting_location')->nullable();
+            $table->text('requirements')->nullable();
+            $table->string('category')->nullable();
             $table->timestamps();
         });
     }
