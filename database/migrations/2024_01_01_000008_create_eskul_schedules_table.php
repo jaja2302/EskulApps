@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('eskul_schedules', function (Blueprint $table) {
+         Schema::create('eskul_schedules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('eskul_id')->constrained('eskuls');
+            $table->foreignId('eskul_id')->constrained()->onDelete('cascade');
             $table->string('day');
             $table->time('start_time');
             $table->time('end_time');

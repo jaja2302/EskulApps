@@ -130,18 +130,7 @@
                     </div>
                 </div>
 
-                <!-- Footer -->
-                <footer class="fixed bottom-0 left-0 right-0 w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 shadow-sm">
-                    <div class="bg-gradient-to-r from-coral-500/10 to-coral-600/10 dark:from-coral-500/5 dark:to-coral-600/5">
-                        <div class="md:ml-28">
-                            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                                <div class="text-center text-sm text-gray-700 dark:text-gray-300">
-                                    &copy; {{ date('Y') }} ELsa canteek. All rights reserved.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
+               
             </div>
         </div>
         @livewire('notifications')

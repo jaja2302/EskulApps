@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('image');
             $table->string('banner_image')->nullable();
             $table->foreignId('pelatih_id')->constrained('users');
-            $table->foreignId('pembimbing_id')->nullable()->constrained('users');
+            $table->foreignId('pembina_id')->nullable()->constrained('users');
             $table->integer('quota')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('meeting_location')->nullable();

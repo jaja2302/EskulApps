@@ -22,16 +22,16 @@ class DummyDataSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
-        // Create Pembimbing
-        $pembimbings = [];
+        // Create Pembina
+        $pembimbing = [];
         for ($i = 1; $i <= 3; $i++) {
-            $pembimbing = User::create([
-                'name' => "Pembimbing {$i}",
-                'email' => "pembimbing{$i}@example.com",
+            $pembina = User::create([
+                'name' => "Pembina {$i}",
+                'email' => "pembina{$i}@example.com",
                 'password' => Hash::make('password123'),
             ]);
-            $pembimbing->assignRole('pembimbing');
-            $pembimbings[] = $pembimbing;
+            $pembina->assignRole('pembina');
+            $pembimbing[] = $pembina;
         }
 
         // Create Pelatih
@@ -46,28 +46,28 @@ class DummyDataSeeder extends Seeder
             $pelatihs[] = $pelatih;
         }
 
-        // Create Eskul
-        $eskulNames = [
-            'Basket', 'Futsal', 'Pramuka', 'PMR', 'Musik', 
-            'Tari', 'Robotik', 'English Club', 'Jurnalistik', 'Seni Rupa'
-        ];
+        // // Create Eskul
+        // $eskulNames = [
+        //     'Basket', 'Futsal', 'Pramuka', 'PMR', 'Musik', 
+        //     'Tari', 'Robotik', 'English Club', 'Jurnalistik', 'Seni Rupa'
+        // ];
 
-        $eskuls = [];
-        foreach ($eskulNames as $index => $name) {
-            $eskul = Eskul::create([
-                'name' => $name,
-                'description' => $faker->paragraph(),
-                'image' => 'eskul/default.jpg', // Pastikan ada default image
-                'pelatih_id' => $pelatihs[$index]->id,
-                'pembimbing_id' => $pembimbings[array_rand($pembimbings, 1)]->id,
-                'quota' => rand(20, 30),
-                'is_active' => true,
-                'meeting_location' => $faker->randomElement(['Lapangan', 'Aula', 'Ruang Kelas A1', 'Lab Komputer', 'Studio Musik']),
-                'requirements' => $faker->sentences(3, true),
-                'category' => $faker->randomElement(['Olahraga', 'Seni', 'Akademik', 'Sosial']),
-            ]);
-            $eskuls[] = $eskul;
-        }
+        // $eskuls = [];
+        // foreach ($eskulNames as $index => $name) {
+        //     $eskul = Eskul::create([
+        //         'name' => $name,
+        //         'description' => $faker->paragraph(),
+        //         'image' => 'eskul/default.jpg', // Pastikan ada default image
+        //         'pelatih_id' => $pelatihs[$index]->id,
+        //         'pembimbing_id' => $pembimbings[array_rand($pembimbings, 1)]->id,
+        //         'quota' => rand(20, 30),
+        //         'is_active' => true,
+        //         'meeting_location' => $faker->randomElement(['Lapangan', 'Aula', 'Ruang Kelas A1', 'Lab Komputer', 'Studio Musik']),
+        //         'requirements' => $faker->sentences(3, true),
+        //         'category' => $faker->randomElement(['Olahraga', 'Seni', 'Akademik', 'Sosial']),
+        //     ]);
+        //     $eskuls[] = $eskul;
+        // }
 
         // Create Siswa
         for ($i = 1; $i <= 110; $i++) {

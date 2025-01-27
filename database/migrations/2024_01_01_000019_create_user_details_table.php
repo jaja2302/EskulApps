@@ -27,7 +27,7 @@ return new class extends Migration
             // Informasi Akademik
             $table->string('class')->nullable();          // Kelas saat ini
             $table->string('academic_year')->nullable();  // Tahun akademik
-            $table->enum('living_with', ['parents', 'guardian'])->default('parents')->after('academic_year');
+            // $table->enum('living_with', ['parents', 'guardian'])->default('parents')->after('academic_year');
             
             // Informasi Orang Tua/Wali
             $table->string('father_name')->nullable();

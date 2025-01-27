@@ -15,7 +15,7 @@ class Eskul extends Model
         'image',
         'banner_image',
         'pelatih_id',
-        'pembimbing_id',
+        'pembina_id',
         'quota',
         'is_active',
         'meeting_location',
@@ -32,9 +32,9 @@ class Eskul extends Model
         return $this->belongsTo(User::class, 'pelatih_id');
     }
 
-    public function pembimbing(): BelongsTo
+    public function pembina(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'pembimbing_id');
+        return $this->belongsTo(User::class, 'pembina_id');
     }
 
     public function members(): HasMany

@@ -13,7 +13,7 @@
             <span class="tooltip-text">Home</span>
         </a>
 
-        @role('admin')
+       @can('view eskul')
         <!-- Eskul -->
         <a href="{{ route('dashboard.eskul') }}" 
            class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
@@ -22,7 +22,8 @@
             </svg>
             <span class="tooltip-text">Dashboard Eskul</span>
         </a>
-
+        @endcan
+        @role('admin')
         <!-- Manage Users -->   
         <a href="{{ route('manageusers') }}" 
            class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">

@@ -8,19 +8,20 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('test_results', function (Blueprint $table) {
+        Schema::create('test_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('test_id')->constrained('tests');
+            $table->foreignId('test_id')->constrained('eskul_tests');
             $table->foreignId('student_id')->constrained('users');
-            $table->integer('score');
+            $table->datetime('start_time');
+            $table->datetime('end_time')->nullable();
+            $table->integer('score')->nullable();
+            $table->boolean('is_passed')->nullable();
             $table->timestamps();
-
-            $table->unique(['test_id', 'student_id']);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('test_results');
+        Schema::dropIfExists('test_attempts');
     }
 }; 

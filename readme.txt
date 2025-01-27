@@ -8,26 +8,26 @@ SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
       - Profile Management ✓ = Pengelolaan profil user (foto, biodata, kontak, password)
 
    B. Eskul Management
-      - Eskul CRUD = Pengelolaan data eskul (nama, deskripsi, kuota, pelatih)
-      - Schedule Management = Pengaturan jadwal latihan eskul
+      - Eskul CRUD ✓  = Pengelolaan data eskul (nama, deskripsi, kuota, pelatih)
+      - Schedule Management ✓  = Pengaturan jadwal latihan eskul
       - Material Management = Upload dan kelola materi pembelajaran
       - Gallery Management = Pengelolaan foto dan video kegiatan
 
 2. SISTEM PENDAFTARAN & KEGIATAN
    A. Manajemen Anggota Eskul
-      - Penambahan siswa = Admin/Pelatih menambahkan siswa ke eskul
-      - Pengelolaan status = Aktif/non-aktif keanggotaan
-      - Riwayat keanggotaan = Tracking masa keanggotaan
+      - Penambahan siswa ✓  = Admin/Pelatih menambahkan siswa ke eskul
+      - Pengelolaan status ✓  = Aktif/non-aktif keanggotaan
+      - Riwayat keanggotaan ✓  = Tracking masa keanggotaan
 
    B. Kegiatan Eskul
       - Event Management = Pengelolaan acara/kegiatan eskul
-      - Attendance System = Sistem absensi digital untuk setiap pertemuan
+      - Attendance System ✓  = Sistem absensi digital untuk setiap pertemuan
       - Material Distribution = Pembagian materi pembelajaran
       - Test/Quiz System = Sistem ujian/kuis untuk evaluasi
 
 3. SISTEM PENCATATAN PERFORMA
    A. Absensi
-      - Digital attendance = Absensi digital via sistem
+      - Digital attendance ✓ = Absensi digital via sistem
       - Izin/Sakit management = Pengelolaan ketidakhadiran
       - Report kehadiran = Laporan kehadiran per siswa/eskul
       - Export data = Download data kehadiran (PDF/Excel)
@@ -94,7 +94,7 @@ URUTAN PENGEMBANGAN:
    - Setup project ✓
    - Database migration ✓
    - Authentication ✓
-   - Basic CRUD
+   - Basic CRUD ✓
 
 2. Minggu 3-4: Activity System
    - Manajemen anggota
@@ -156,12 +156,9 @@ SEEDER STATUS:
 
 COMMAND UNTUK SETUP:
 1. Fresh Install:
-   php artisan migrate:fresh --seed
+   php artisan migrate:fresh
 
-2. Update Database:
-   php artisan migrate
-
-3. Seed Data:
+2. Seed Data:
    php artisan db:seed --class=RoleAndPermissionSeeder
    php artisan db:seed --class=DummyDataSeeder
 

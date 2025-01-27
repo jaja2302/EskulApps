@@ -4,26 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Attendance extends Model
 {
     protected $fillable = [
         'eskul_id',
-        'created_by',
+        'schedule_id',
+        'student_id',
         'date',
-        'start_time',
-        'end_time',
-        'location',
-        'activity_description',
+        'check_in_time',
+        'status',
         'notes',
-        'status'
+        'is_verified',
+        'verified_by',
+        'verified_at'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime'
+        'check_in_time' => 'datetime',
+        'verified_at' => 'datetime',
+        'is_verified' => 'boolean'
     ];
 
     public function eskul(): BelongsTo
@@ -31,13 +32,18 @@ class Attendance extends Model
         return $this->belongsTo(Eskul::class);
     }
 
-    public function creator(): BelongsTo
+    public function schedule(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(EskulSchedule::class, 'schedule_id');
     }
 
-    public function details(): HasMany
+    public function student(): BelongsTo
     {
-        return $this->hasMany(AttendanceDetail::class);
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 } 

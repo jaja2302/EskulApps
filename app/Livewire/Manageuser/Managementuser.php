@@ -155,7 +155,7 @@ class Managementuser extends Component implements HasForms, HasTable
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'success',
                         'pelatih' => 'info',
-                        'pembimbing' => 'info',
+                        'pembina' => 'info',
                         'siswa' => 'primary',
                         default => 'secondary',
                     })
@@ -269,7 +269,7 @@ class Managementuser extends Component implements HasForms, HasTable
         $rolePermissions = [
             'admin' => Role::findByName('admin')->permissions->pluck('name'),
             'pelatih' => Role::findByName('pelatih')->permissions->pluck('name'),
-            'pembimbing' => Role::findByName('pembimbing')->permissions->pluck('name'),
+            'pembina' => Role::findByName('pembina')->permissions->pluck('name'),
             'siswa' => Role::findByName('siswa')->permissions->pluck('name'),
         ];
 

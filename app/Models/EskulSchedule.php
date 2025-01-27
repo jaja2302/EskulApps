@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EskulSchedule extends Model
 {
@@ -13,18 +14,20 @@ class EskulSchedule extends Model
         'start_time',
         'end_time',
         'location',
-        'notes',
         'is_active'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime'
     ];
 
     public function eskul(): BelongsTo
     {
         return $this->belongsTo(Eskul::class);
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'schedule_id');
     }
 } 

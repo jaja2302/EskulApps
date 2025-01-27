@@ -4,7 +4,6 @@ namespace App\Helpers;
 
 class HashHelper
 {
-    private static string $cipher = 'aes-256-cbc';
     private static string $key;
 
     public static function init()
@@ -15,19 +14,52 @@ class HashHelper
     public static function encrypt($value)
     {
         self::init();
-        $ivLength = openssl_cipher_iv_length(self::$cipher);
-        $iv = openssl_random_pseudo_bytes($ivLength);
-        $encrypted = openssl_encrypt((string)$value, self::$cipher, self::$key, 0, $iv);
-        return base64_encode($iv . $encrypted);
+        $encrypted = openssl_encrypt(
+            (string)$value,
+            'AES-256-ECB',
+            self::$key,
+            OPENSSL_RAW_DATA
+        );
+        
+        // Menggunakan strtr untuk mengubah karakter yang tidak aman di URL
+        return strtr(base64_encode($encrypted), [
+            '+' => '-',
+            '/' => '_',
+            '=' => ''
+        ]);
     }
 
     public static function decrypt($hash)
     {
         self::init();
-        $decoded = base64_decode($hash);
-        $ivLength = openssl_cipher_iv_length(self::$cipher);
-        $iv = substr($decoded, 0, $ivLength);
-        $encrypted = substr($decoded, $ivLength);
-        return openssl_decrypt($encrypted, self::$cipher, self::$key, 0, $iv);
+        try {
+            // Mengembalikan karakter base64 yang asli
+            $base64 = strtr($hash, [
+                '-' => '+',
+                '_' => '/'
+            ]);
+            
+            // Menambahkan padding '=' jika diperlukan
+            $pad = strlen($base64) % 4;
+            if ($pad) {
+                $base64 .= str_repeat('=', 4 - $pad);
+            }
+            
+            $decrypted = openssl_decrypt(
+                base64_decode($base64),
+                'AES-256-ECB',
+                self::$key,
+                OPENSSL_RAW_DATA
+            );
+            
+            if ($decrypted === false) {
+                throw new \Exception('Decryption failed');
+            }
+            
+            return $decrypted;
+        } catch (\Exception $e) {
+            \Log::error('Decryption error: ' . $e->getMessage());
+            return null;
+        }
     }
 } 

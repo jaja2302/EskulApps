@@ -109,9 +109,9 @@ class RoleAndPermissionSeeder extends Seeder
         $adminRole = Role::create(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
 
-        // Pembimbing
-        $pembimbingRole = Role::create(['name' => 'pembimbing']);
-        $pembimbingRole->givePermissionTo([
+        // Pembina (sebelumnya Pembimbing)
+        $pembinaRole = Role::create(['name' => 'pembina']);
+        $pembinaRole->givePermissionTo([
             'view eskul',
             'view schedule',
             'view attendance',

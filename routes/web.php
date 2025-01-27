@@ -9,8 +9,9 @@ use Spatie\Permission\Middleware\PermissionMiddleware;
 use App\Livewire\Manageuser\Managementuser;
 use App\Livewire\UserProfile\Profiledetail;
 use App\Livewire\Dashboard;
-use App\Livewire\DashboardEskul;
-use App\Livewire\Eskuldetail;
+use App\Livewire\EksulApps\DashboardEskul;
+use App\Livewire\EksulApps\DetailEskul;
+use App\Livewire\AnalisisApps\DetailSiswa;
 
 Route::get('/', function () {
     return view('components.Login.index');
@@ -27,18 +28,19 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
-
+    Route::get('/dashboard/analisis/detail-siswa/{hash}', DetailSiswa::class)->name('analisis-apps.detail-siswa');
     Route::get('/profile', Profiledetail::class)->name('profile.show');
 
     // Admin routes using the new Laravel 11 syntax
     Route::middleware(RoleMiddleware::using('admin'))->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
-        Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
+       
         Route::get('/user/profile/{hash}', Profiledetail::class)->name('user.profile');
     });
 
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {
-        Route::get('/dashboard/eskul/detail/{hash}', Eskuldetail::class)->name('eskul.detail');
+        Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
+        Route::get('/dashboard/eskul/detail/{hash}', DetailEskul::class)->name('eskul.detail');
     });
 });
 
