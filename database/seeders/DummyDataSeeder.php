@@ -79,35 +79,35 @@ class DummyDataSeeder extends Seeder
             $siswa->assignRole('siswa');
         }
 
-        // Create some schedules for each eskul
-        foreach ($eskuls as $eskul) {
-            $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-            $randomDay = $faker->randomElement($days);
+        // // Create some schedules for each eskul
+        // foreach ($eskuls as $eskul) {
+        //     $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        //     $randomDay = $faker->randomElement($days);
             
-            \DB::table('eskul_schedules')->insert([
-                'eskul_id' => $eskul->id,
-                'day' => $randomDay,
-                'start_time' => '14:00',
-                'end_time' => '16:00',
-                'location' => $eskul->meeting_location,
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        //     \DB::table('eskul_schedules')->insert([
+        //         'eskul_id' => $eskul->id,
+        //         'day' => $randomDay,
+        //         'start_time' => '14:00',
+        //         'end_time' => '16:00',
+        //         'location' => $eskul->meeting_location,
+        //         'is_active' => true,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        // }
 
-        // Create some announcements
-        foreach ($eskuls as $eskul) {
-            \DB::table('announcements')->insert([
-                'eskul_id' => $eskul->id,
-                'created_by' => $eskul->pelatih_id,
-                'title' => "Pengumuman Kegiatan " . $eskul->name,
-                'content' => $faker->paragraph(),
-                'is_important' => $faker->boolean(),
-                'publish_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        // // Create some announcements
+        // foreach ($eskuls as $eskul) {
+        //     \DB::table('announcements')->insert([
+        //         'eskul_id' => $eskul->id,
+        //         'created_by' => $eskul->pelatih_id,
+        //         'title' => "Pengumuman Kegiatan " . $eskul->name,
+        //         'content' => $faker->paragraph(),
+        //         'is_important' => $faker->boolean(),
+        //         'publish_at' => now(),
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        // }
     }
 } 

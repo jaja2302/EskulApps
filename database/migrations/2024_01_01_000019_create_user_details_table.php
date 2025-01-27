@@ -27,6 +27,7 @@ return new class extends Migration
             // Informasi Akademik
             $table->string('class')->nullable();          // Kelas saat ini
             $table->string('academic_year')->nullable();  // Tahun akademik
+            $table->enum('living_with', ['parents', 'guardian'])->default('parents')->after('academic_year');
             
             // Informasi Orang Tua/Wali
             $table->string('father_name')->nullable();
@@ -35,13 +36,14 @@ return new class extends Migration
             $table->string('mother_name')->nullable();
             $table->string('mother_occupation')->nullable();
             $table->string('mother_phone')->nullable();
-            
+            $table->string('parent_email')->nullable();
             // Informasi Wali (opsional)
             $table->string('guardian_name')->nullable();
             $table->string('guardian_occupation')->nullable();
             $table->string('guardian_phone')->nullable();
             $table->string('guardian_relation')->nullable(); // Hubungan dengan siswa
-            
+            $table->string('guardian_email')->nullable();
+
             // Informasi Tambahan
             $table->text('medical_history')->nullable();    // Riwayat kesehatan
             $table->text('special_needs')->nullable();      // Kebutuhan khusus

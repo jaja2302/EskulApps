@@ -4,8 +4,8 @@ SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
    A. Authentication & User Management
       - Login system ✓ = Sistem login untuk semua user (admin, pembimbing, pelatih, siswa)
       - Role & Permission ✓ = Pengaturan hak akses untuk setiap role
-      - User CRUD = Create, Read, Update, Delete data user
-      - Profile Management = Pengelolaan profil user (foto, biodata, kontak, password)
+      - User CRUD ✓  = Create, Read, Update, Delete data user
+      - Profile Management ✓ = Pengelolaan profil user (foto, biodata, kontak, password)
 
    B. Eskul Management
       - Eskul CRUD = Pengelolaan data eskul (nama, deskripsi, kuota, pelatih)

@@ -34,8 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(RoleMiddleware::using('admin'))->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
         Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
+        Route::get('/user/profile/{hash}', Profiledetail::class)->name('user.profile');
     });
-
 
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {
         Route::get('/dashboard/eskul/detail/{hash}', Eskuldetail::class)->name('eskul.detail');

@@ -33,7 +33,9 @@ class UserDetail extends Model
         'guardian_relation',
         'medical_history',
         'special_needs',
-        'notes'
+        'notes',
+        'parent_email',
+        'guardian_email'
     ];
 
     protected $casts = [

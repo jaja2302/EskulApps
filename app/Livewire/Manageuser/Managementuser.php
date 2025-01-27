@@ -26,7 +26,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-
+use App\Helpers\HashHelper;
 class Managementuser extends Component implements HasForms, HasTable
 {
     use InteractsWithTable;
@@ -144,8 +144,10 @@ class Managementuser extends Component implements HasForms, HasTable
                     }),
             ])
             ->columns([
-                TextColumn::make('name'),
-                TextColumn::make('email'),
+                TextColumn::make('name')
+                    ->searchable(),
+                TextColumn::make('email')
+                    ->searchable(),
                 TextColumn::make('created_at'),
                 TextColumn::make('updated_at'),
                 TextColumn::make('roles.name')
@@ -158,11 +160,33 @@ class Managementuser extends Component implements HasForms, HasTable
                         default => 'secondary',
                     })
                     ->formatStateUsing(fn (string $state): string => str_replace('_', ' ', ucfirst($state))),
+                TextColumn::make('user.detail.created_at')
+                    ->label('Kelengkapan Biodata')
+                    ->badge()
+                    ->state(function (User $record) {
+                        // Check if the detail relationship exists and is not null
+                        if ($record->detail && $record->detail->created_at) {
+                            return 'Sudah lengkap'; // return 'lengkap' if created_at exists
+                        }
+                        return 'Belum lengkap'; // return 'belum lengkap' if created_at is null or detail is missing
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'Sudah lengkap' => 'success',
+                        'Belum lengkap' => 'danger',
+                        default => 'secondary',
+                    })
+                
             ])
             ->filters([
                 // ...
             ])
             ->actions([
+                
+                Action::make('detail')
+                    ->label('Detail')
+                    ->color('success')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (User $record) => route('user.profile',['hash' => HashHelper::encrypt($record->id)])),
                 DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalHeading('Delete User')
@@ -196,7 +220,7 @@ class Managementuser extends Component implements HasForms, HasTable
                                 ->danger()
                                 ->send();
                         }
-                    })
+                    }),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
