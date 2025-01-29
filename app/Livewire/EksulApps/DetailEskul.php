@@ -412,7 +412,7 @@ class DetailEskul extends Component implements HasForms, HasTable
             ]);
     }
 
-
+    
     
 }
 

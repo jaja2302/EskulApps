@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('meeting_location')->nullable();
             $table->text('requirements')->nullable();
             $table->string('category')->nullable();
+            $table->boolean('kouta_unlimited')->default(false);
             $table->timestamps();
         });
     }

@@ -20,7 +20,8 @@ class Eskul extends Model
         'is_active',
         'meeting_location',
         'requirements',
-        'category'
+        'category',
+        'kouta_unlimited'
     ];
 
     protected $casts = [

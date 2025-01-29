@@ -209,64 +209,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                             </svg>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800">History Absensi ({{ now()->format('F Y') }})</h2>
+                        <h2 class="text-2xl font-bold text-gray-800">History Absensi</h2>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white dark:bg-gray-800 rounded-xl overflow-hidden">
-                        <thead class="bg-gray-50 dark:bg-gray-700">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Tanggal</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Nama Siswa</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Waktu</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Verifikasi</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Catatan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @forelse($attendanceHistory as $attendance)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $attendance->date->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $attendance->student->name }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        {{ $attendance->check_in_time->format('H:i') }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            @if($attendance->status === 'hadir') bg-green-100 text-green-800
-                                            @elseif($attendance->status === 'izin') bg-yellow-100 text-yellow-800
-                                            @elseif($attendance->status === 'sakit') bg-orange-100 text-orange-800
-                                            @else bg-red-100 text-red-800
-                                            @endif">
-                                            {{ ucfirst($attendance->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        @if($attendance->is_verified)
-                                            <span class="text-green-600">Terverifikasi</span>
-                                        @else
-                                            <span class="text-yellow-600">Menunggu</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {{ $attendance->notes }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                        Belum ada data absensi untuk bulan ini
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div>
+                    @livewire('EksulApps.AttedanceWidgetTable', ['eskul' => $eskul])
                 </div>
             </div>
         </div>
