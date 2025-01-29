@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use App\Helpers\HashHelper;
+use Filament\Tables\Actions\ActionGroup;
+
 class Managementuser extends Component implements HasForms, HasTable
 {
     use InteractsWithTable;
@@ -181,7 +183,7 @@ class Managementuser extends Component implements HasForms, HasTable
                 // ...
             ])
             ->actions([
-                
+                ActionGroup::make([
                 Action::make('detail')
                     ->label('Detail')
                     ->color('success')
@@ -221,6 +223,7 @@ class Managementuser extends Component implements HasForms, HasTable
                                 ->send();
                         }
                     }),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([

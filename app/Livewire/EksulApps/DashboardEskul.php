@@ -119,12 +119,6 @@ class DashboardEskul extends Component implements HasForms, HasTable
                             'pelatih_id' => $record->pelatih_id,
                             'pembina_id' => $record->pembina_id,
                         ])
-                        ->successNotification(
-                            Notification::make()
-                                ->success()
-                                ->title('Eskul updated')
-                                ->body('The Eskul has been saved successfully.'),
-                        )
                         ->action(fn (Eskul $record, array $data) => $record->update($data))
                         ->icon('heroicon-o-pencil'),
                     Action::make('schedule')
@@ -133,13 +127,8 @@ class DashboardEskul extends Component implements HasForms, HasTable
                         ->form($this->formSchedule())
                         ->visible(fn (): bool => auth()->user()->hasPermissionTo('create schedule'))
                         ->modalHeading('Tambah Jadwal Eskul')
-                        ->successNotification(
-                            Notification::make()
-                                ->success()
-                                ->title('Jadwal berhasil ditambahkan')
-                                ->body('Jadwal eskul telah berhasil disimpan.'),
-                        )
                         ->action(function (Eskul $record, array $data) {
+                         
                             // Handle each schedule in the repeater
                             foreach ($data['schedules'] as $schedule) {
                                 EskulSchedule::create([
@@ -155,28 +144,28 @@ class DashboardEskul extends Component implements HasForms, HasTable
                             Notification::make()
                                 ->success()
                                 ->title('Jadwal berhasil ditambahkan')
-                                ->body('Jadwal eskul telah berhasil disimpan.');
+                                ->body('Jadwal eskul telah berhasil disimpan.')
+                                ->send();
                         }),
                     Action::make('material_management')
                         ->label('Material Management')
                         ->icon('heroicon-o-calendar')
                         ->form($this->formMaterial())
                         ->action(function (Eskul $record, array $data) {
-                            foreach ($data['material'] as $material) {
-                                EskulMaterial::create([
-                                    'eskul_id' => $record->id,
-                                    'uploaded_by' => auth()->id(),
-                                    'title' => $data['title'],
-                                    'description' => $data['description'],
-                                    'file_path' => $material,
-                                    'file_type' => pathinfo($material, PATHINFO_EXTENSION),
-                                ]);
-                            }
+                            EskulMaterial::create([
+                                'eskul_id' => $record->id,
+                                'uploaded_by' => auth()->id(),
+                                'title' => $data['title'],
+                                'description' => $data['description'],
+                                'file_path' => $data['material'],
+                                'file_type' => pathinfo($data['material'], PATHINFO_EXTENSION),
+                            ]);
 
                             Notification::make()
-                            ->success()
-                            ->title('Material berhasil ditambahkan')
-                            ->body('Material eskul telah berhasil disimpan.');
+                                ->success()
+                                ->title('Material berhasil ditambahkan')
+                                ->body('Material eskul telah berhasil disimpan.')
+                                ->send();
                             
                         }),
                     DeleteAction::make()
@@ -266,7 +255,7 @@ class DashboardEskul extends Component implements HasForms, HasTable
             FileUpload::make('material')
                 ->label('Material')
                 ->directory('eskul/material')
-                ->multiple()
+                // ->multiple()
                 ->maxFiles(5)
                 ->required()
                 ->visibility('private'),

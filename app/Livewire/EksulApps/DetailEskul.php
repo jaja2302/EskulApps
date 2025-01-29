@@ -28,7 +28,8 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Carbon\Carbon;
-
+use App\Models\EskulMaterial;
+use Filament\Tables\Actions\ActionGroup;
 
 class DetailEskul extends Component implements HasForms, HasTable
 {
@@ -44,6 +45,7 @@ class DetailEskul extends Component implements HasForms, HasTable
     public $canClockIn = false;
     public $attendanceHistory = [];
     public $attendance_percentage;
+    public $eskulMaterial;
 
     public function mount($hash)
     {
@@ -110,9 +112,8 @@ class DetailEskul extends Component implements HasForms, HasTable
             }
             // dd($this->canClockIn);
 
-            $this->form->fill();
 
-            $this->loadAttendanceHistory();
+
 
             // Calculate attendance percentage for today
             $attendance_percentage = 0;
@@ -126,11 +127,25 @@ class DetailEskul extends Component implements HasForms, HasTable
             }
             
             $this->attendance_percentage = $attendance_percentage;
+
+            $this->loadEskulMaterial();
+
+
+            $this->form->fill();
+
         } catch (\Exception $e) {
             // Log error jika perlu
             \Log::error('Error in DetailEskul mount: ' . $e->getMessage());
             return redirect()->route('dashboard.eskul')->with('error', 'An error occurred');
         }
+    }
+
+    public function loadEskulMaterial()
+    {
+        $this->eskulMaterial = EskulMaterial::where('eskul_id', $this->eskul->id)->get();
+        $this->eskulMaterial = $this->eskulMaterial->groupBy('title')->toArray();
+
+        // dd($this->eskulMaterial);
     }
 
     public function getAttendanceStats()
@@ -266,28 +281,6 @@ class DetailEskul extends Component implements HasForms, HasTable
         }
     }
 
-    public function verifyAttendance($attendanceId)
-    {
-        if (!auth()->user()->hasRole('pelatih')) {
-            return $this->addError('permission', 'Unauthorized');
-        }
-
-        Attendance::findOrFail($attendanceId)->update([
-            'is_verified' => true,
-            'verified_by' => auth()->id(),
-            'verified_at' => now()
-        ]);
-    }
-
-    public function loadAttendanceHistory()
-    {
-        $this->attendanceHistory = Attendance::where('eskul_id', $this->eskul->id)
-            ->with('student') // Eager load student relationship
-            ->whereMonth('date', now()->month)
-            ->whereYear('date', now()->year)
-            ->orderBy('date', 'desc')
-            ->get();
-    }
 
     public function table(Table $table): Table
     {
@@ -365,10 +358,11 @@ class DetailEskul extends Component implements HasForms, HasTable
                 // ...
             ])
             ->actions([
-                // ...
-                Action::make('edit')
-                    ->label('Edit')
-                    ->icon('heroicon-o-pencil')
+                
+                ActionGroup::make([
+                    Action::make('edit')
+                        ->label('Edit')
+                        ->icon('heroicon-o-pencil')
                     ->visible(fn (): bool => auth()->user()->hasPermissionTo('edit eskul'))
                     ->form([
                         Select::make('is_active')
@@ -381,31 +375,26 @@ class DetailEskul extends Component implements HasForms, HasTable
                     ->fillForm(fn (EskulMember $record): array => [
                         'is_active' => $record->is_active
                     ])
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('Anggota berhasil diubah!')
-                            ->body('The Anggota has been saved successfully.')
-                    )
                     ->action(function (array $data, EskulMember $record) {
                         $record->update([
                             'is_active' => $data['is_active']
                         ]);
                     }),
-                Action::make('Detail')
-                    ->label('Detail Akademik')
-                    ->color('info')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('analisis-apps.detail-siswa', ['hash' => HashHelper::encrypt($record->student_id)])),
-                Action::make('delete')
-                    ->label('Hapus')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('delete eskul'))
-                    ->action(function (EskulMember $record) {
-                        $record->delete();
-                    }),
+                    Action::make('Detail')
+                        ->label('Detail Akademik')
+                        ->color('info')
+                        ->icon('heroicon-o-eye')
+                        ->url(fn ($record) => route('analisis-apps.detail-siswa', ['hash' => HashHelper::encrypt($record->student_id)])),
+                    Action::make('delete')
+                        ->label('Hapus')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('delete eskul'))
+                        ->action(function (EskulMember $record) {
+                            $record->delete();
+                        }), 
+                ])      
             ])
             ->bulkActions([
                 // ...

@@ -108,6 +108,33 @@
             </div>
         </div>
 
+        @if($eskulMaterial)
+            <div class="col-span-12">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">Materi Eskul</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            @foreach($eskulMaterial as $key => $material)
+                                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
+                                    <div class="p-6">
+                                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">{{ $key }}</h3>
+                                        @foreach($material as $item)
+                                            <p class="text-gray-600 dark:text-gray-300">{{ $item['title'] }}</p>
+                                            <p class="text-gray-600 dark:text-gray-300">{{ $item['description'] }}</p>
+                                            <a href="{{ Storage::url($item['file_path']) }}" class="text-blue-500 hover:text-blue-600">Unduh</a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+        
+
         <!-- Members Section - Full width -->
         <div class="col-span-12">
             <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">

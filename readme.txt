@@ -22,7 +22,7 @@ SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
    B. Kegiatan Eskul
       - Event Management = Pengelolaan acara/kegiatan eskul
       - Attendance System ✓  = Sistem absensi digital untuk setiap pertemuan
-      - Material Distribution = Pembagian materi pembelajaran
+      - Material Distribution ✓  = Pembagian materi pembelajaran
       - Test/Quiz System = Sistem ujian/kuis untuk evaluasi
 
 3. SISTEM PENCATATAN PERFORMA
