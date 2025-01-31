@@ -113,18 +113,33 @@
                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
                     <div class="p-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold text-gray-800">Materi Eskul</h2>
+                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Materi Eskul</h2>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             @foreach($eskulMaterial as $key => $material)
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-300">
                                     <div class="p-6">
-                                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2">{{ $key }}</h3>
-                                        @foreach($material as $item)
-                                            <p class="text-gray-600 dark:text-gray-300">{{ $item['title'] }}</p>
-                                            <p class="text-gray-600 dark:text-gray-300">{{ $item['description'] }}</p>
-                                            <a href="{{ Storage::url($item['file_path']) }}" class="text-blue-500 hover:text-blue-600">Unduh</a>
-                                        @endforeach
+                                        <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                                            <span class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">
+                                                {{ $loop->iteration }}
+                                            </span>
+                                            {{ $key }}
+                                        </h3>
+                                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            @foreach($material as $item)
+                                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300">
+                                                    <h4 class="font-semibold text-gray-800 dark:text-white mb-2">{{ $item['title'] }}</h4>
+                                                    <p class="text-gray-600 dark:text-gray-300 text-sm mb-3 line-clamp-2">{{ $item['description'] }}</p>
+                                                    <a href="{{ Storage::url($item['file_path']) }}" 
+                                                       class="inline-flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-300">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                        </svg>
+                                                        <span>Unduh Materi</span>
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -245,6 +260,214 @@
                 </div>
             </div>
         </div>
+
+        <!-- Events Section - Setelah Quick Stats Card -->
+        @if($eskulEvents && $eskulEvents->count() > 0)
+            <div class="col-span-12">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-yellow-500 p-3 rounded-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Upcoming Events</h2>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- <h1>{{$eskulEvents}}</h1> -->
+                            @foreach($eskulEvents as $event)
+                                <div class="bg-white dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                                    <div class="p-6">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <h3 class="text-xl font-semibold text-gray-800 dark:text-white">{{ $event->title }}</h3>
+                                            @if($event->requires_registration)
+                                                <span class="px-3 py-1 text-xs font-semibold rounded-full 
+                                                    {{ $event->isRegistrationOpen() ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                    {{ $event->isRegistrationOpen() ? 'Pendaftaran Dibuka' : 'Pendaftaran Ditutup' }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <div class="space-y-3">
+                                            <p class="text-gray-600 dark:text-gray-300">{{ $event->description }}</p>
+                                            
+                                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                </svg>
+                                                <span>{{ $event->start_datetime->format('d M Y H:i') }} - {{ $event->end_datetime->format('d M Y H:i') }}</span>
+                                            </div>
+
+                                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                </svg>
+                                                <span>{{ $event->location }}</span>
+                                            </div>
+
+                                            <!-- Show participants count -->
+                                            <div class="flex items-center text-gray-500 dark:text-gray-400">
+                                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                                </svg>
+                                                <span>{{ $event->participants->count() }} Peserta{{ $event->quota ? ' / ' . $event->quota : '' }}</span>
+                                            </div>
+
+                                            @if($event->requires_registration && auth()->user()->hasRole('siswa'))
+                                                <div class="mt-6">
+                                                    @if($event->hasUserRegistered(auth()->user()))
+                                                        <button disabled class="w-full bg-gray-100 text-gray-500 px-4 py-2 rounded-lg">
+                                                            Sudah Terdaftar
+                                                        </button>
+                                                    @elseif($event->isRegistrationOpen())
+                                                        <button 
+                                                            wire:click="registerForEvent({{ $event->id }})"
+                                                            class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+                                                        >
+                                                            Daftar Event
+                                                        </button>
+                                                    @else
+                                                        <button disabled class="w-full bg-gray-100 text-gray-500 px-4 py-2 rounded-lg">
+                                                            Pendaftaran Ditutup
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if($eskulGallery && $eskulGallery->count() > 0)
+            <div class="col-span-12">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-purple-500 p-3 rounded-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Galeri Eskul</h2>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            @foreach($eskulGallery as $item)
+                                <div class="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                                     @if($item->media_type === 'video')
+                                         x-data="{}"
+                                         @click="$dispatch('open-modal', { url: '{{ Storage::url($item->file_path) }}', title: '{{ $item->title }}' })"
+                                     @endif
+                                >
+                                    @if($item->media_type === 'video')
+                                        <video class="w-full h-48 object-cover">
+                                            <source src="{{ Storage::url($item->file_path) }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div class="bg-white/20 rounded-full p-3">
+                                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <img src="{{ Storage::url($item->file_path) }}" 
+                                             alt="{{ $item->title }}"
+                                             class="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-300">
+                                    @endif
+                                    
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div class="absolute bottom-0 left-0 right-0 p-4 text-white">
+                                            <h3 class="font-semibold text-lg">{{ $item->title }}</h3>
+                                            <p class="text-sm text-gray-200">{{ $item->description }}</p>
+                                            <p class="text-xs text-gray-300 mt-1">{{ $item->event_date->format('d M Y') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Video Modal -->
+            <div
+                x-data="{ 
+                    show: false,
+                    videoUrl: '',
+                    videoTitle: '',
+                    hideModal() {
+                        this.show = false;
+                        const video = this.$refs.modalVideo;
+                        if (video) video.pause();
+                    }
+                }"
+                @open-modal.window="
+                    videoUrl = $event.detail.url;
+                    videoTitle = $event.detail.title;
+                    show = true;
+                "
+                @keydown.escape.window="hideModal()"
+            >
+                <!-- Modal Backdrop -->
+                <div
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 bg-black/50 z-50"
+                    @click="hideModal()"
+                ></div>
+
+                <!-- Modal Content -->
+                <div
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 transform translate-y-0"
+                    x-transition:leave-end="opacity-0 transform translate-y-4"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    @click.stop
+                >
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full">
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-gray-800 dark:text-white" x-text="videoTitle"></h3>
+                            <button @click="hideModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="p-4">
+                            <video 
+                                x-ref="modalVideo"
+                                class="w-full rounded-lg"
+                                controls
+                                :src="videoUrl"
+                            ></video>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </div>
-

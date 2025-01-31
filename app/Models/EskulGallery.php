@@ -5,23 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Achievement extends Model
+class EskulGallery extends Model
 {
-    protected $table = 'achievements';
+    protected $table = 'eskul_galleries';
 
     protected $fillable = [
         'eskul_id',
-        'student_id',
+        'uploaded_by',
         'title',
         'description',
-        'achievement_date',
-        'level',
-        'position',
-        'certificate_file'
+        'media_type',
+
+        'file_path',
+        'event_date'
     ];
 
     protected $casts = [
-        'achievement_date' => 'date'
+        'event_date' => 'date'
     ];
 
     public function eskul(): BelongsTo
@@ -29,8 +29,8 @@ class Achievement extends Model
         return $this->belongsTo(Eskul::class);
     }
 
-    public function student(): BelongsTo
+    public function uploader(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 } 

@@ -10,8 +10,8 @@ SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
    B. Eskul Management
       - Eskul CRUD ✓  = Pengelolaan data eskul (nama, deskripsi, kuota, pelatih)
       - Schedule Management ✓  = Pengaturan jadwal latihan eskul
-      - Material Management✓  = Upload dan kelola materi pembelajaran
-      - Gallery Management = Pengelolaan foto dan video kegiatan
+      - Material Management ✓  = Upload dan kelola materi pembelajaran
+      - Gallery Management ✓  = Pengelolaan foto dan video kegiatan
 
 2. SISTEM PENDAFTARAN & KEGIATAN
    A. Manajemen Anggota Eskul

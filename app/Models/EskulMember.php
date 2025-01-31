@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EskulMember extends Model
 {
+    protected $table = 'eskul_members';
+
     protected $fillable = [
         'student_id',
         'eskul_id',

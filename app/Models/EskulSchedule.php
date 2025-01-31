@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EskulSchedule extends Model
 {
+    protected $table = 'eskul_schedules';
+
     protected $fillable = [
         'eskul_id',
         'day',

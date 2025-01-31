@@ -30,6 +30,9 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Carbon\Carbon;
 use App\Models\EskulMaterial;
 use Filament\Tables\Actions\ActionGroup;
+use App\Models\EskulGallery;
+use App\Models\EskulEvent;
+use App\Models\EskulEventParticipant;
 
 class DetailEskul extends Component implements HasForms, HasTable
 {
@@ -46,6 +49,8 @@ class DetailEskul extends Component implements HasForms, HasTable
     public $attendanceHistory = [];
     public $attendance_percentage;
     public $eskulMaterial;
+    public $eskulGallery;
+    public $eskulEvents;
 
     public function mount($hash)
     {
@@ -57,17 +62,17 @@ class DetailEskul extends Component implements HasForms, HasTable
                 return redirect()->route('dashboard.eskul')->with('error', 'Invalid eskul ID');
             }
 
-            $this->eskul = Eskul::with(['schedules.attendances.student'])->find($id);
+            $this->eskul = Eskul::with(['schedules.attendances.student', 'members.student', 'events.participants'])->find($id);
             
             if (!$this->eskul) {
                 // Redirect jika eskul tidak ditemukan
                 return redirect()->route('dashboard.eskul')->with('error', 'Eskul not found');
             }
 
-            $members = EskulMember::where('eskul_id', $this->eskul->id)->get();
-            $this->members_total = $members->count();
-            $this->members_active = $members->where('status', 'active')->count();
-            $this->members_inactive = $members->where('status', 'inactive')->count();
+            // Menggunakan relasi members langsung
+            $this->members_total = $this->eskul->members->count();
+            $this->members_active = $this->eskul->members->where('status', 'active')->count();
+            $this->members_inactive = $this->eskul->members->where('status', 'inactive')->count();
 
             // Get today's schedule
             $today = now()->format('l'); // Ini akan menghasilkan 'Monday'
@@ -86,7 +91,6 @@ class DetailEskul extends Component implements HasForms, HasTable
             $todayInIndonesian = $dayMapping[$today];
             $this->todaySchedule = $this->eskul->schedules->where('day', $todayInIndonesian)->first();
 
-            // dd($this->todaySchedule,$today,$todayInIndonesian);
             // Check user's attendance status if they're a student
             if (Auth::user()->hasRole('siswa') && $this->todaySchedule) {
                 $eskul_schedule = EskulSchedule::where('eskul_id', $this->eskul->id)
@@ -110,10 +114,6 @@ class DetailEskul extends Component implements HasForms, HasTable
                     $this->canClockIn = $now_timestamp >= $start_timestamp && $now_timestamp <= $end_timestamp;
                 }
             }
-            // dd($this->canClockIn);
-
-
-
 
             // Calculate attendance percentage for today
             $attendance_percentage = 0;
@@ -122,14 +122,15 @@ class DetailEskul extends Component implements HasForms, HasTable
                     ->where('date', today())
                     ->where('status', 'hadir')
                     ->count();
-                // dd($present_today);
                 $attendance_percentage = round(($present_today / $this->members_total) * 100);
             }
             
             $this->attendance_percentage = $attendance_percentage;
 
+            // Menggunakan relasi materials langsung
             $this->loadEskulMaterial();
-
+            $this->loadEskulGallery();
+            $this->loadEskulEvents();
 
             $this->form->fill();
 
@@ -142,10 +143,24 @@ class DetailEskul extends Component implements HasForms, HasTable
 
     public function loadEskulMaterial()
     {
-        $this->eskulMaterial = EskulMaterial::where('eskul_id', $this->eskul->id)->get();
-        $this->eskulMaterial = $this->eskulMaterial->groupBy('title')->toArray();
+        // Menggunakan relasi materials langsung
+        $this->eskulMaterial = $this->eskul->materials->groupBy('title')->toArray();
+    }
 
-        // dd($this->eskulMaterial);
+    public function loadEskulGallery()
+    {
+        // Menggunakan relasi galleries langsung
+        $this->eskulGallery = $this->eskul->galleries()
+            ->orderBy('event_date', 'desc')
+            ->get();
+    }
+
+    public function loadEskulEvents()
+    {
+        // Load upcoming events with participants
+        $this->eskulEvents = $this->eskul->events()
+            ->with(['participants.student'])
+            ->get();
     }
 
     public function getAttendanceStats()
@@ -225,8 +240,6 @@ class DetailEskul extends Component implements HasForms, HasTable
     {
         try {
             // Validasi apakah bisa clock in
-
-            // dd($this->canClockIn);
             if (!$this->canClockIn) {
                 Notification::make()
                     ->title('Tidak dapat melakukan absensi')
@@ -281,6 +294,51 @@ class DetailEskul extends Component implements HasForms, HasTable
         }
     }
 
+    public function registerForEvent($eventId)
+    {
+        try {
+            $event = EskulEvent::findOrFail($eventId);
+            
+            // Check if registration is open
+            if (!$event->isRegistrationOpen()) {
+                Notification::make()
+                    ->warning()
+                    ->title('Pendaftaran sudah ditutup')
+                    ->send();
+                return;
+            }
+
+            // Check if user already registered
+            if ($event->hasUserRegistered(auth()->user())) {
+                Notification::make()
+                    ->warning()
+                    ->title('Anda sudah terdaftar di event ini')
+                    ->send();
+                return;
+            }
+
+            // Create participant record
+            EskulEventParticipant::create([
+                'event_id' => $eventId,
+                'student_id' => auth()->id(),
+                'status' => 'registered',
+                'notes' => 'Pendaftaran melalui sistem'
+            ]);
+
+            // Refresh events data
+            $this->loadEskulEvents();
+
+            Notification::make()
+                ->success()
+                ->title('Berhasil mendaftar ke event')
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->danger()
+                ->title('Gagal mendaftar ke event')
+                ->send();
+        }
+    }
 
     public function table(Table $table): Table
     {

@@ -82,6 +82,7 @@ class RoleAndPermissionSeeder extends Seeder
             'view achievements',
             
             // Event Management
+            'manage event',
             'create event',
             'edit event',
             'delete event',
@@ -166,6 +167,7 @@ class RoleAndPermissionSeeder extends Seeder
             'manage comments',
             'approve member',
             'reject member',
+            'manage event',
         ]);
 
         // Siswa

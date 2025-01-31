@@ -35,6 +35,10 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Tables\Actions\ActionGroup;
 use App\Models\EskulMaterial;
+use App\Models\EskulGallery;
+use Filament\Forms\Components\DatePicker;
+use App\Models\EskulEvent;
+use Filament\Forms\Components\Toggle;
 
 class DashboardEskul extends Component implements HasForms, HasTable
 {
@@ -151,6 +155,7 @@ class DashboardEskul extends Component implements HasForms, HasTable
                         ->label('Material Management')
                         ->icon('heroicon-o-calendar')
                         ->form($this->formMaterial())
+                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
                         ->action(function (Eskul $record, array $data) {
                             EskulMaterial::create([
                                 'eskul_id' => $record->id,
@@ -167,6 +172,50 @@ class DashboardEskul extends Component implements HasForms, HasTable
                                 ->body('Material eskul telah berhasil disimpan.')
                                 ->send();
                             
+                        }),
+                    Action::make('gallery_management')
+                        ->label('Gallery Management')
+                        ->icon('heroicon-o-photo')
+                        ->form($this->formGallery())
+                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
+                        ->action(function (Eskul $record, array $data) {
+                            EskulGallery::create([
+                                'eskul_id' => $record->id,
+                                'uploaded_by' => auth()->id(),
+                                'title' => $data['title'],
+                                'description' => $data['description'],
+                                'media_type' => pathinfo($data['media'], PATHINFO_EXTENSION) === 'mp4' ? 'video' : 'image',
+                                'file_path' => $data['media'],
+                                'event_date' => $data['event_date'],
+                            ]);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Gallery item added successfully')
+                                ->send();
+                        }),
+                    Action::make('event_management')
+                        ->label('Event Management')
+                        ->icon('heroicon-o-calendar')
+                        ->form($this->formEvent())
+                        ->visible(fn (): bool => auth()->user()->hasAnyPermission(['manage event', 'create event']))
+                        ->action(function (Eskul $record, array $data) {
+                            EskulEvent::create([
+                                'eskul_id' => $record->id,
+                                'created_by' => auth()->id(),
+                                'title' => $data['title'],
+                                'description' => $data['description'],
+                                'start_datetime' => $data['start_datetime'],
+                                'end_datetime' => $data['end_datetime'],
+                                'location' => $data['location'],
+                                'quota' => $data['requires_registration'] ? $data['quota'] : null,
+                                'requires_registration' => $data['requires_registration'],
+                            ]);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Event created successfully')
+                                ->send();
                         }),
                     DeleteAction::make()
                         ->label('Hapus')
@@ -295,8 +344,61 @@ class DashboardEskul extends Component implements HasForms, HasTable
         ];
     }
 
+    private function formGallery(): array
+    {
+        return [
+            TextInput::make('title')
+                ->label('Judul')
+                ->required(),
+            TextInput::make('description')
+                ->label('Deskripsi')
+                ->required(),
+            FileUpload::make('media')
+                ->label('Media (Foto/Video)')
+                ->directory('eskul/gallery')
+                ->acceptedFileTypes(['image/*', 'video/mp4'])
+                ->maxSize(50000)
+                ->required()
+                ->visibility('private'),
+            DatePicker::make('event_date')
+                ->label('Tanggal Event')
+                ->required(),
+        ];
+    }
+
+    private function formEvent(): array
+    {
+        return [
+            TextInput::make('title')
+                ->label('Judul Event')
+                ->required(),
+            TextInput::make('description')
+                ->label('Deskripsi')
+                ->required(),
+            DatePicker::make('start_datetime')
+                ->label('Waktu Mulai')
+                ->required()
+                ->native(false),
+            DatePicker::make('end_datetime')
+                ->label('Waktu Selesai')
+                ->required()
+                ->native(false),
+            TextInput::make('location')
+                ->label('Lokasi')
+                ->required(),
+            Toggle::make('requires_registration')
+                ->label('Memerlukan Pendaftaran')
+                ->default(true),
+            TextInput::make('quota')
+                ->label('Kuota')
+                ->numeric()
+                ->required(fn (Get $get): bool => $get('requires_registration')),
+        ];
+    }
+
     public function render()
     {
         return view('livewire.eksul-apps.dashboard-eskul');
     }
 }
+    

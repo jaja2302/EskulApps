@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EskulMaterial extends Model
 {
+    protected $table = 'eskul_materials';
+
     protected $fillable = [
         'eskul_id',
         'uploaded_by',

@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Eskul extends Model
 {
-    //
+    protected $table = 'eskuls';
+
     protected $fillable = [
         'name',
         'description',
