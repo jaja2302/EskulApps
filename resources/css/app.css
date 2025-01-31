@@ -278,3 +278,34 @@
         @apply py-3 text-base;
     }
 }
+
+/* Lottie Animation Styles */
+.lottie-animation {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Loading Screen Styles */
+#loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999 !important; /* Force highest z-index */
+    transition: all 0.3s ease-in-out;
+    opacity: 1;
+    visibility: visible;
+}
+
+#loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Ensure other elements don't overlap */
+.fi-layout,
+.filament-notifications,
+.sidebar,
+.dropdown-menu {
+    z-index: 50 !important;
+}

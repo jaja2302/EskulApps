@@ -16,4 +16,13 @@ export default defineConfig({
             ],
         }),
     ],
+    resolve: {
+        alias: {
+            '@': '/resources/js',
+            'jquery': 'jquery/dist/jquery.js'
+        },
+    },
+    optimizeDeps: {
+        include: ['jquery']
+    }
 })

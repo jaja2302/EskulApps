@@ -1,66 +1,180 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+1. SISTEM DASAR (Core System)
+   A. Authentication & User Management
+      - Login system ✓ = Sistem login untuk semua user (admin, pembimbing, pelatih, siswa)
+      - Role & Permission ✓ = Pengaturan hak akses untuk setiap role
+      - User CRUD ✓  = Create, Read, Update, Delete data user
+      - Profile Management ✓ = Pengelolaan profil user (foto, biodata, kontak, password)
 
-## About Laravel
+   B. Eskul Management
+      - Eskul CRUD ✓  = Pengelolaan data eskul (nama, deskripsi, kuota, pelatih)
+      - Schedule Management ✓  = Pengaturan jadwal latihan eskul
+      - Material Management✓  = Upload dan kelola materi pembelajaran
+      - Gallery Management = Pengelolaan foto dan video kegiatan
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+2. SISTEM PENDAFTARAN & KEGIATAN
+   A. Manajemen Anggota Eskul
+      - Penambahan siswa ✓  = Admin/Pelatih menambahkan siswa ke eskul
+      - Pengelolaan status ✓  = Aktif/non-aktif keanggotaan
+      - Riwayat keanggotaan ✓  = Tracking masa keanggotaan
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+   B. Kegiatan Eskul
+      - Event Management = Pengelolaan acara/kegiatan eskul
+      - Attendance System ✓  = Sistem absensi digital untuk setiap pertemuan
+      - Material Distribution ✓  = Pembagian materi pembelajaran
+      - Test/Quiz System = Sistem ujian/kuis untuk evaluasi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+3. SISTEM PENCATATAN PERFORMA
+   A. Absensi
+      - Digital attendance ✓ = Absensi digital via sistem
+      - Izin/Sakit management = Pengelolaan ketidakhadiran
+      - Report kehadiran = Laporan kehadiran per siswa/eskul
+      - Export data = Download data kehadiran (PDF/Excel)
 
-## Learning Laravel
+   B. Partisipasi
+      - Record aktivitas harian = Pencatatan keaktifan siswa
+      - Event participation = Keikutsertaan dalam acara
+      - Material interaction = Interaksi dengan materi pembelajaran
+      - Discussion participation = Keaktifan dalam diskusi
+      - Point system = Sistem poin untuk setiap partisipasi
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+   C. Prestasi
+      - Achievement recording = Pencatatan prestasi lomba/kompetisi
+      - Performance evaluation = Evaluasi kinerja berkala
+      - Test results = Hasil ujian/kuis
+      - Competition records = Catatan kompetisi yang diikuti
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+4. SISTEM ANALISIS K-MEANS
+   A. Data Collection
+      - Aggregasi data absensi = Pengumpulan data kehadiran
+      - Aggregasi data partisipasi = Pengumpulan data keaktifan
+      - Aggregasi data prestasi = Pengumpulan data prestasi
+      - Data normalization = Standarisasi data untuk analisis
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+   B. K-means Implementation
+      - Perhitungan metrics = Kalkulasi nilai untuk clustering
+      - Clustering process = Proses pengelompokan siswa
+      - Result storage = Penyimpanan hasil clustering
+      - History tracking = Tracking perubahan cluster
 
-## Laravel Sponsors
+   C. Visualisasi
+      - Dashboard charts = Grafik performa
+      - Cluster visualization = Visualisasi kelompok
+      - Performance trends = Tren perkembangan
+      - Export reports = Download laporan analisis
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. DASHBOARD & REPORTING
+   A. Admin Dashboard
+      - Overview semua eskul = Ringkasan semua eskul
+      - Statistik global = Statistik keseluruhan sistem
+      - Management tools = Tools untuk kelola sistem
+      - System monitoring = Monitoring aktivitas sistem
 
-### Premium Partners
+   B. Pembimbing Dashboard
+      - Monitoring eskul = Pemantauan aktivitas eskul
+      - Performance overview = Overview performa eskul
+      - Approval system = Sistem persetujuan kegiatan
+      - Report generation = Pembuatan laporan
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+   C. Pelatih Dashboard
+      - Eskul management = Kelola eskul yang diampu
+      - Student tracking = Tracking perkembangan siswa
+      - Performance analysis = Analisis performa siswa
+      - K-means results = Hasil pengelompokan siswa
 
-## Contributing
+   D. Siswa Dashboard
+      - Personal performance = Performa pribadi
+      - Achievement tracking = Tracking prestasi
+      - Schedule view = Lihat jadwal kegiatan
+      - Material access = Akses materi pembelajaran
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+URUTAN PENGEMBANGAN:
+1. Minggu 1-2: Core System
+   - Setup project ✓
+   - Database migration ✓
+   - Authentication ✓
+   - Basic CRUD ✓
 
-## Code of Conduct
+2. Minggu 3-4: Activity System
+   - Manajemen anggota
+   - Attendance system
+   - Event management
+   - Material management
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. Minggu 5-6: Performance Recording
+   - Absensi digital
+   - Participation tracking
+   - Achievement recording
+   - Performance evaluation
 
-## Security Vulnerabilities
+4. Minggu 7-8: K-means Integration
+   - Data collection system
+   - Metrics calculation
+   - K-means implementation
+   - Result storage
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+5. Minggu 9-10: Visualization
+   - Dashboard development
+   - Chart integration
+   - Report generation
+   - Export functionality
 
-## License
+6. Minggu 11-12: Finalisasi
+   - Testing & debugging
+   - Optimization
+   - Documentation
+   - Deployment
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+TIPS PENGEMBANGAN:
+1. Selesaikan satu modul sebelum ke modul berikutnya
+2. Test setiap fitur sebelum lanjut
+3. Backup data secara regular
+4. Dokumentasikan setiap tahap
+5. Prioritaskan fitur essential
+
+DATABASE MIGRATION STATUS:
+✓ users table (default Laravel)
+✓ eskuls table
+✓ eskul_members table
+✓ tests table
+✓ test_results table
+✓ eskul_schedules table
+✓ eskul_materials table
+✓ achievements table
+✓ eskul_events table
+✓ event_registrations table
+✓ eskul_galleries table
+✓ attendances table
+✓ attendance_details table
+✓ participation_records table
+✓ performance_evaluations table
+
+SEEDER STATUS:
+✓ RoleAndPermissionSeeder
+✓ DummyDataSeeder
+
+COMMAND UNTUK SETUP:
+1. Fresh Install:
+   php artisan migrate:fresh
+
+2. Seed Data:
+   php artisan db:seed --class=RoleAndPermissionSeeder
+   php artisan db:seed --class=DummyDataSeeder
+
+DEFAULT LOGIN:
+1. Admin:
+   Email: admin@example.com
+   Pass: password123
+
+2. Pembimbing (1-3):
+   Email: pembimbing1@example.com
+   Pass: password123
+
+3. Pelatih (1-10):
+   Email: pelatih1@example.com
+   Pass: password123
+
+4. Siswa (1-20):
+   Email: siswa1@example.com
+   Pass: password123
