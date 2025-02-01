@@ -17,6 +17,8 @@ return new class extends Migration
             $table->datetime('start_datetime');
             $table->datetime('end_datetime');
             $table->string('location');
+            $table->boolean('is_finished')->default(false);
+            $table->boolean('is_winner_announced')->default(false);
             $table->integer('quota')->nullable();
             $table->boolean('requires_registration')->default(false);
             $table->timestamps();
