@@ -317,12 +317,22 @@ class DetailEskul extends Component implements HasForms, HasTable
                 return;
             }
 
-            // Create participant record
+            // Check if event requires registration approval
+            if ($event->requires_registration) {
+                Notification::make()
+                    ->warning()
+                    ->title('Event ini memerlukan persetujuan pelatih')
+                    ->body('Silahkan hubungi pelatih untuk mendaftar')
+                    ->send();
+                return;
+            }
+
+            // Create participant record with auto-approved status
             EskulEventParticipant::create([
                 'event_id' => $eventId,
                 'student_id' => auth()->id(),
-                'status' => 'registered',
-                'notes' => 'Pendaftaran melalui sistem'
+                'status' => 'approved', // Langsung approved karena tidak memerlukan persetujuan
+                'notes' => 'Pendaftaran langsung melalui sistem'
             ]);
 
             // Refresh events data

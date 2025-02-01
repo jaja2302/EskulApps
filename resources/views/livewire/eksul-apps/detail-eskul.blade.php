@@ -318,12 +318,17 @@
                                                 <span>{{ $event->participants->count() }} Peserta{{ $event->quota ? ' / ' . $event->quota : '' }}</span>
                                             </div>
 
-                                            @if($event->requires_registration && auth()->user()->hasRole('siswa'))
+                                            @if(auth()->user()->hasRole('siswa'))
                                                 <div class="mt-6">
                                                     @if($event->hasUserRegistered(auth()->user()))
                                                         <button disabled class="w-full bg-gray-100 text-gray-500 px-4 py-2 rounded-lg">
                                                             Sudah Terdaftar
                                                         </button>
+                                                    @elseif($event->requires_registration)
+                                                        <div class="text-center">
+                                                            <p class="text-gray-600 dark:text-gray-400 mb-2">Event ini memerlukan persetujuan pelatih</p>
+                                                            <span class="text-blue-500">Silahkan hubungi pelatih untuk mendaftar</span>
+                                                        </div>
                                                     @elseif($event->isRegistrationOpen())
                                                         <button 
                                                             wire:click="registerForEvent({{ $event->id }})"

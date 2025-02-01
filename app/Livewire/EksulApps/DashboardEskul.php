@@ -68,7 +68,7 @@ class DashboardEskul extends Component implements HasForms, HasTable
                 CreateAction::make()
                     ->label('Tambah Eskul')
                     ->icon('heroicon-o-plus')
-                    ->form($this->formEskul())
+                    ->form(formEskul())
                     ->closeModalByClickingAway(false)
                     ->visible(fn (): bool => auth()->user()->hasPermissionTo('create eskul'))
                     ->using(function (array $data) {
@@ -103,13 +103,14 @@ class DashboardEskul extends Component implements HasForms, HasTable
             ->actions([
                 ActionGroup::make([
                     Action::make('detail')
-                        ->label('Detail')
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('view eskul'))
-                        ->icon('heroicon-o-eye')
-                        ->url(fn ($record) => route('eskul.detail', ['hash' => HashHelper::encrypt($record->id)])),
+                    ->label('Detail')
+                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('view eskul'))
+                    ->icon('heroicon-o-eye')
+                    ->url(fn ($record) => route('eskul.detail', ['hash' => HashHelper::encrypt($record->id)])),
+                    ActionGroup::make([
                     Action::make('edit')
                         ->label('Edit')
-                        ->form($this->formEskul())
+                        ->form(formEskul())
                         ->visible(fn (): bool => auth()->user()->hasPermissionTo('edit eskul'))
                         ->fillForm(fn (Eskul $record): array => [
                             'name' => $record->name,
@@ -128,7 +129,7 @@ class DashboardEskul extends Component implements HasForms, HasTable
                     Action::make('schedule')
                         ->label('Tambah Jadwal')
                         ->icon('heroicon-o-calendar')
-                        ->form($this->formSchedule())
+                        ->form(formSchedule())
                         ->visible(fn (): bool => auth()->user()->hasPermissionTo('create schedule'))
                         ->modalHeading('Tambah Jadwal Eskul')
                         ->action(function (Eskul $record, array $data) {
@@ -151,78 +152,95 @@ class DashboardEskul extends Component implements HasForms, HasTable
                                 ->body('Jadwal eskul telah berhasil disimpan.')
                                 ->send();
                         }),
-                    Action::make('material_management')
-                        ->label('Material Management')
-                        ->icon('heroicon-o-calendar')
-                        ->form($this->formMaterial())
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
-                        ->action(function (Eskul $record, array $data) {
-                            EskulMaterial::create([
-                                'eskul_id' => $record->id,
-                                'uploaded_by' => auth()->id(),
-                                'title' => $data['title'],
-                                'description' => $data['description'],
-                                'file_path' => $data['material'],
-                                'file_type' => pathinfo($data['material'], PATHINFO_EXTENSION),
-                            ]);
-
-                            Notification::make()
-                                ->success()
-                                ->title('Material berhasil ditambahkan')
-                                ->body('Material eskul telah berhasil disimpan.')
-                                ->send();
-                            
-                        }),
-                    Action::make('gallery_management')
-                        ->label('Gallery Management')
-                        ->icon('heroicon-o-photo')
-                        ->form($this->formGallery())
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
-                        ->action(function (Eskul $record, array $data) {
-                            EskulGallery::create([
-                                'eskul_id' => $record->id,
-                                'uploaded_by' => auth()->id(),
-                                'title' => $data['title'],
-                                'description' => $data['description'],
-                                'media_type' => pathinfo($data['media'], PATHINFO_EXTENSION) === 'mp4' ? 'video' : 'image',
-                                'file_path' => $data['media'],
-                                'event_date' => $data['event_date'],
-                            ]);
-
-                            Notification::make()
-                                ->success()
-                                ->title('Gallery item added successfully')
-                                ->send();
-                        }),
-                    Action::make('event_management')
-                        ->label('Event Management')
-                        ->icon('heroicon-o-calendar')
-                        ->form($this->formEvent())
-                        ->visible(fn (): bool => auth()->user()->hasAnyPermission(['manage event', 'create event']))
-                        ->action(function (Eskul $record, array $data) {
-                            EskulEvent::create([
-                                'eskul_id' => $record->id,
-                                'created_by' => auth()->id(),
-                                'title' => $data['title'],
-                                'description' => $data['description'],
-                                'start_datetime' => $data['start_datetime'],
-                                'end_datetime' => $data['end_datetime'],
-                                'location' => $data['location'],
-                                'quota' => $data['requires_registration'] ? $data['quota'] : null,
-                                'requires_registration' => $data['requires_registration'],
-                            ]);
-
-                            Notification::make()
-                                ->success()
-                                ->title('Event created successfully')
-                                ->send();
-                        }),
-                    DeleteAction::make()
+                         DeleteAction::make()
                         ->label('Hapus')
                         ->icon('heroicon-o-trash')
                         ->visible(fn (): bool => auth()->user()->hasPermissionTo('delete eskul'))
                         ->color('danger')
                         ->action(fn ($record) => $record->delete())
+                    ])
+                    ->button()
+                    ->label('Eskul Management'),
+                    ActionGroup::make([
+                        Action::make('material_management')
+                            ->label('Material Management')
+                            ->icon('heroicon-o-calendar')
+                            ->form(formMaterial())
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
+                            ->action(function (Eskul $record, array $data) {
+                                EskulMaterial::create([
+                                    'eskul_id' => $record->id,
+                                    'uploaded_by' => auth()->id(),
+                                    'title' => $data['title'],
+                                    'description' => $data['description'],
+                                    'file_path' => $data['material'],
+                                    'file_type' => pathinfo($data['material'], PATHINFO_EXTENSION),
+                                ]);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Material berhasil ditambahkan')
+                                    ->body('Material eskul telah berhasil disimpan.')
+                                    ->send();
+                                
+                            }),
+                        Action::make('gallery_management')
+                            ->label('Gallery Management')
+                            ->icon('heroicon-o-photo')
+                            ->form(formGallery())
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
+                            ->action(function (Eskul $record, array $data) {
+                                EskulGallery::create([
+                                    'eskul_id' => $record->id,
+                                    'uploaded_by' => auth()->id(),
+                                    'title' => $data['title'],
+                                    'description' => $data['description'],
+                                    'media_type' => pathinfo($data['media'], PATHINFO_EXTENSION) === 'mp4' ? 'video' : 'image',
+                                    'file_path' => $data['media'],
+                                    'event_date' => $data['event_date'],
+                                ]);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Gallery item added successfully')
+                                    ->send();
+                            }),
+                        ])
+                    ->button()
+                    ->label('File Management'),
+                    ActionGroup::make([
+                        Action::make('create_event')
+                            ->label('Tambah Event')
+                            ->icon('heroicon-o-calendar')
+                            ->form(formEvent())
+                            ->visible(fn (): bool => auth()->user()->hasAnyPermission(['manage event', 'create event']))
+                            ->action(function (Eskul $record, array $data) {
+                                EskulEvent::create([
+                                    'eskul_id' => $record->id,
+                                    'created_by' => auth()->id(),
+                                    'title' => $data['title'],
+                                    'description' => $data['description'],
+                                    'start_datetime' => $data['start_datetime'],
+                                    'end_datetime' => $data['end_datetime'],
+                                    'location' => $data['location'],
+                                    'quota' => $data['quota'],
+                                    'requires_registration' => $data['requires_registration'],
+                                ]);
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Event created successfully')
+                                    ->send();
+                            }),
+                        Action::make('list_event')
+                            ->label('List Event')
+                            ->icon('heroicon-o-calendar')
+                            ->openUrlInNewTab()
+                            ->url(fn ($record) => route('eskul.list-event', ['hash' => HashHelper::encrypt($record->id)])),
+                    ])
+                    ->button()
+                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage event'))
+                    ->label('Event Management'),
                 ])
             ])
             ->bulkActions([
@@ -230,171 +248,6 @@ class DashboardEskul extends Component implements HasForms, HasTable
             ]);
     }
 
-    private function formEskul(): array
-    {
-        return [
-            TextInput::make('name')
-                        ->label('Nama Eskul')
-                        ->required(),
-                    TextInput::make('description')
-                        ->label('Deskripsi')
-                        ->required(),
-                    FileUpload::make('image')
-                        ->label('Gambar')
-                        ->image()
-                        ->directory('eskul/banner')
-                        ->required()
-                        ->visibility('private'),
-                    FileUpload::make('banner_image')
-                        ->label('Banner')
-                        ->image()
-                        ->directory('eskul/banner')
-                        ->visibility('private'),
-                    Radio::make('kouta_unlimited')
-                        ->label('Kuota Unlimited')
-                        ->options([
-                            '1' => 'Aktif',
-                            '0' => 'Tidak Aktif',
-                        ])
-                        ->required()
-                        ->live()
-                        ->default('1'),
-                    TextInput::make('quota')
-                        ->label('Kuota')
-                        ->numeric()
-                        ->visible(fn (Get $get) => $get('kouta_unlimited') == '0' ? true : false)
-                        ->required(),
-                    TextInput::make('meeting_location')
-                        ->label('Lokasi Pertemuan')
-                        ->required(),
-                    TextInput::make('requirements')
-                        ->label('Persyaratan')
-                        ->required(),
-                    TextInput::make('category')
-                        ->label('Kategori')
-                        ->required(),
-                    Select::make('pelatih_id')
-                        ->label('Pelatih')
-                        ->options(
-                            User::whereHas('roles', function ($query) {
-                                $query->whereIn('name', ['pelatih']);
-                            })->pluck('name', 'id')
-                        )
-                        ->required(),
-                    Select::make('pembina_id')
-                        ->label('Pembina')
-                        ->options(
-                            User::whereHas('roles', function ($query) {
-                                $query->whereIn('name', ['pembina']);
-                            })->pluck('name', 'id')
-                        )
-                        ->required(),
-        ];
-    }
-
-    private function formMaterial(): array
-    {
-        return [
-            TextInput::make('title')
-                ->label('Judul')
-                ->required(),
-            TextInput::make('description')
-                ->label('Deskripsi')
-                ->required(),
-            FileUpload::make('material')
-                ->label('Material')
-                ->directory('eskul/material')
-                // ->multiple()
-                ->maxFiles(5)
-                ->required()
-                ->visibility('private'),
-        ];
-    }
-    
-    private function formSchedule(): array
-    {
-        return [
-            Repeater::make('schedules')
-            ->label('Jadwal')
-            ->schema([
-            Select::make('day')
-                ->label('Hari')
-                ->options([
-                    'Senin' => 'Senin',
-                    'Selasa' => 'Selasa',
-                    'Rabu' => 'Rabu',
-                    'Kamis' => 'Kamis',
-                    'Jumat' => 'Jumat',
-                    'Sabtu' => 'Sabtu',
-                    'Minggu' => 'Minggu',
-                ])
-                ->required(),
-            TextInput::make('start_time')
-                ->label('Waktu Mulai')
-                ->type('time')
-                ->required(),
-            TextInput::make('end_time')
-                ->label('Waktu Selesai')
-                ->type('time')
-                ->required(),
-            TextInput::make('location')
-                        ->label('Lokasi')
-                        ->required(),
-                ])
-        ];
-    }
-
-    private function formGallery(): array
-    {
-        return [
-            TextInput::make('title')
-                ->label('Judul')
-                ->required(),
-            TextInput::make('description')
-                ->label('Deskripsi')
-                ->required(),
-            FileUpload::make('media')
-                ->label('Media (Foto/Video)')
-                ->directory('eskul/gallery')
-                ->acceptedFileTypes(['image/*', 'video/mp4'])
-                ->maxSize(50000)
-                ->required()
-                ->visibility('private'),
-            DatePicker::make('event_date')
-                ->label('Tanggal Event')
-                ->required(),
-        ];
-    }
-
-    private function formEvent(): array
-    {
-        return [
-            TextInput::make('title')
-                ->label('Judul Event')
-                ->required(),
-            TextInput::make('description')
-                ->label('Deskripsi')
-                ->required(),
-            DatePicker::make('start_datetime')
-                ->label('Waktu Mulai')
-                ->required()
-                ->native(false),
-            DatePicker::make('end_datetime')
-                ->label('Waktu Selesai')
-                ->required()
-                ->native(false),
-            TextInput::make('location')
-                ->label('Lokasi')
-                ->required(),
-            Toggle::make('requires_registration')
-                ->label('Memerlukan Pendaftaran')
-                ->default(true),
-            TextInput::make('quota')
-                ->label('Kuota')
-                ->numeric()
-                ->required(fn (Get $get): bool => $get('requires_registration')),
-        ];
-    }
 
     public function render()
     {

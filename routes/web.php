@@ -12,6 +12,7 @@ use App\Livewire\Dashboard;
 use App\Livewire\EksulApps\DashboardEskul;
 use App\Livewire\EksulApps\DetailEskul;
 use App\Livewire\AnalisisApps\DetailSiswa;
+use App\Livewire\EksulApps\DetailEvent;
 
 Route::get('/', function () {
     return view('components.Login.index');
@@ -41,6 +42,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {
         Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
         Route::get('/dashboard/eskul/detail/{hash}', DetailEskul::class)->name('eskul.detail');
+    });
+
+    Route::middleware(PermissionMiddleware::using('create event'))->group(function () {
+        Route::get('/dashboard/eskul/list-event/{hash}', DetailEvent::class)->name('eskul.list-event');
     });
 });
 
