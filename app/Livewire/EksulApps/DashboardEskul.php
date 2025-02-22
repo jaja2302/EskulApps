@@ -241,6 +241,12 @@ class DashboardEskul extends Component implements HasForms, HasTable
                     ->button()
                     ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage event'))
                     ->label('Event Management'),
+                Action::make('analisis_eskul')
+                    ->label('Eskul Analisis Report')
+                    ->icon('heroicon-o-calendar')
+                    ->openUrlInNewTab()
+                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage event'))
+                    ->url(fn ($record) => route('eskul.analisis', ['hash' => HashHelper::encrypt($record->id)])),
                 ])
             ])
             ->bulkActions([

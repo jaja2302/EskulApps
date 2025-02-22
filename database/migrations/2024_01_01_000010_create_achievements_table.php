@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('eskul_id')->constrained('eskuls');
             $table->foreignId('student_id')->constrained('users');
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->date('achievement_date');
             $table->string('level'); // sekolah/kota/provinsi/nasional/internasional
             $table->string('position'); // juara 1/2/3/harapan

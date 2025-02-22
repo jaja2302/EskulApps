@@ -44,6 +44,7 @@ use App\Models\EskulMember;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\Textarea;
 use App\Models\EskulEventParticipant;
+use App\Models\Achievement;
 
 class DetailEvent extends Component implements HasForms, HasTable
 {
@@ -92,7 +93,15 @@ class DetailEvent extends Component implements HasForms, HasTable
                        return 'Tutup'; // Registration is closed
                    }
                }),
-             
+               TextColumn::make('status')
+                   ->label('Status Event')
+                   ->badge()
+                   ->color(fn ($state) => match ($state) {
+                       'pending' => 'warning',
+                       'completed' => 'success',
+                       'cancelled' => 'danger',
+                   })
+                   ->state(fn ($record) => $record->status ?? 'pending'),
             ])
             ->filters([
                 SelectFilter::make('requires_registration')
@@ -179,6 +188,85 @@ class DetailEvent extends Component implements HasForms, HasTable
                             ->success()
                             ->send();
                     }),
+                Action::make('verify_event')
+                    ->label('Verifikasi Event')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->form([
+                        Select::make('status')
+                            ->label('Status Event')
+                            ->options([
+                                'completed' => 'Selesai',
+                                'cancelled' => 'Dibatalkan',
+                                'pending' => 'Belum Selesai'
+                            ])
+                            ->live()
+                            ->required(),
+                        Textarea::make('result_notes')
+                            ->label('Catatan Hasil')
+                            ->placeholder('Masukkan detail hasil event (prestasi/penghargaan/dll)')
+                            ->rows(3),
+                        Select::make('achievement_type')
+                            ->label('Jenis Prestasi')
+                            ->options([
+                                'juara_1' => 'Juara 1',
+                                'juara_2' => 'Juara 2',
+                                'juara_3' => 'Juara 3',
+                                'harapan' => 'Juara Harapan',
+                                'partisipasi' => 'Partisipasi',
+                                'lainnya' => 'Lainnya'
+                            ])
+                            ->visible(fn (Get $get) => $get('status') === 'completed'),
+                    ])
+                    ->fillForm(function (EskulEvent $record) {
+                        return [
+                            'status' => $record->status ?? 'pending',
+                            'result_notes' => $record->result_notes,
+                            'achievement_type' => $record->achievement_type,
+                        ];
+                    })
+                    ->action(function (EskulEvent $record, array $data) {
+
+                        // dd($data);
+                        $record->update([
+                            'status' => $data['status'],
+                            'result_notes' => $data['result_notes'],
+                            'achievement_type' => $data['status'] === 'completed' ? $data['achievement_type'] : null,
+                            'is_finished' => 1
+                        ]);
+
+                        // Jika status completed dan ada achievement_type, buat achievement baru
+                        if ($data['status'] === 'completed' && isset($data['achievement_type'])) {
+                            // Ambil semua siswa yang terdaftar di event ini
+                            $participants = $record->participants;
+                            
+                            foreach ($participants as $participant) {
+                                Achievement::create([
+                                    'eskul_id' => $record->eskul_id,
+                                    'student_id' => $participant->id,
+                                    'title' => "Prestasi: {$record->title}",
+                                    'description' => $data['result_notes'],
+                                    'achievement_date' => now(),
+                                    'level' => 'event', // atau bisa ditambahkan field level di form
+                                    'position' => match ($data['achievement_type']) {
+                                        'juara_1' => '1',
+                                        'juara_2' => '2',
+                                        'juara_3' => '3',
+                                        'harapan' => '4',
+                                        'partisipasi' => '5',
+                                        'lainnya' => null,
+                                    },
+                                    // Certificate file bisa ditambahkan nanti jika diperlukan
+                                ]);
+                            }
+                        }
+                        
+                        Notification::make()
+                            ->title('Status Event Berhasil Diperbarui')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('edit event')),
             ]);
     }
 

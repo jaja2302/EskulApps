@@ -13,6 +13,7 @@ use App\Livewire\EksulApps\DashboardEskul;
 use App\Livewire\EksulApps\DetailEskul;
 use App\Livewire\AnalisisApps\DetailSiswa;
 use App\Livewire\EksulApps\DetailEvent;
+use App\Livewire\EksulApps\EskulAnalisis;
 
 Route::get('/', function () {
     return view('components.Login.index');
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
        
         Route::get('/user/profile/{hash}', Profiledetail::class)->name('user.profile');
+        Route::get('/dashboard/eskul/analisis/{hash}', EskulAnalisis::class)->name('eskul.analisis');
     });
 
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {

@@ -12,7 +12,6 @@ class EskulEvent extends Model
 
     protected $fillable = [
         'eskul_id',
-
         'created_by',
         'title',
         'description',
@@ -20,7 +19,11 @@ class EskulEvent extends Model
         'end_datetime',
         'location',
         'quota',
-        'requires_registration'
+        'requires_registration',
+        'status',
+        'result_notes',
+        'achievement_type',
+        'is_finished',
     ];
 
     protected $casts = [

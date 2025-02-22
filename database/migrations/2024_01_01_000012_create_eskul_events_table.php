@@ -21,6 +21,9 @@ return new class extends Migration
             $table->boolean('is_winner_announced')->default(false);
             $table->integer('quota')->nullable();
             $table->boolean('requires_registration')->default(false);
+            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->text('result_notes')->nullable();
+            $table->enum('achievement_type', ['juara_1', 'juara_2', 'juara_3', 'harapan', 'partisipasi', 'lainnya'])->nullable();
             $table->timestamps();
         });
     }
