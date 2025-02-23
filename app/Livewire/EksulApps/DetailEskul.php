@@ -63,6 +63,8 @@ class DetailEskul extends Component implements HasForms, HasTable
             }
 
             $this->eskul = Eskul::with(['schedules.attendances.student', 'members.student', 'events.participants'])->find($id);
+
+            // dd($this->eskuls);
             
             if (!$this->eskul) {
                 // Redirect jika eskul tidak ditemukan
@@ -356,7 +358,7 @@ class DetailEskul extends Component implements HasForms, HasTable
             ->pluck('student_id')
             ->toArray();
         return $table
-            ->query(EskulMember::query())
+            ->query(EskulMember::query()->where('eskul_id', $this->eskul->id))
             ->headerActions([
                 CreateAction::make()
                     ->label('Tambah Anggota')
