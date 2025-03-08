@@ -161,6 +161,8 @@ COMMAND UNTUK SETUP:
 2. Seed Data:
    php artisan db:seed --class=RoleAndPermissionSeeder
    php artisan db:seed --class=DummyDataSeeder
+   php artisan db:seed --class=AttendanceAndMemberSeeder
+   php artisan db:seed --class=EventSeeder
 
 DEFAULT LOGIN:
 1. Admin:
