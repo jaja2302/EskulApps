@@ -95,28 +95,25 @@ class KmeansService
     
     private function calculateAchievementScore($studentId, $eskulId)
     {
-        // dd(Achievement::all());
-        // Hitung prestasi dalam periode
         $achievements = Achievement::where('student_id', $studentId)
             ->where('eskul_id', $eskulId)
-            ->whereIn('position',['1','2','3'])
             ->whereBetween('achievement_date', [$this->startDate, $this->endDate])
             ->get();
-        // dd($achievements);
+        
         $totalScore = 0;
         foreach ($achievements as $achievement) {
-            // Bobot level
-            $levelScore = match($achievement->level) {
+            // Sesuaikan bobot level dengan format di database
+            $levelScore = match(strtolower($achievement->level)) {
                 'internasional' => 100,
                 'nasional' => 80,
                 'provinsi' => 60,
-                'kota' => 40,
+                'kabupaten/kota' => 40,  // Sesuaikan dengan format di DB
                 'sekolah' => 20,
                 default => 0
             };
             
-            // Bobot posisi
-            $positionScore = match($achievement->position) {
+            // Sesuaikan bobot posisi dengan format di database
+            $positionScore = match(strtolower($achievement->position)) {
                 'juara 1' => 100,
                 'juara 2' => 80,
                 'juara 3' => 60,
@@ -126,6 +123,13 @@ class KmeansService
             
             $totalScore += ($levelScore + $positionScore) / 2;
         }
+        
+        // Tambahkan log untuk debugging
+        \Log::info("Achievement score calculation for student $studentId:", [
+            'achievements' => $achievements->toArray(),
+            'total_score' => $totalScore,
+            'final_score' => $achievements->count() > 0 ? min(100, $totalScore / $achievements->count()) : 0
+        ]);
         
         return $achievements->count() > 0 ? min(100, $totalScore / $achievements->count()) : 0;
     }
