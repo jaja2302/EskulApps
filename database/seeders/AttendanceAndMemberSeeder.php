@@ -170,7 +170,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         'check_in_time' => $carbonDate->setTimeFromTimeString($schedule->start_time),
                         'status' => $status,
                         'notes' => $record['notes'] ?? null,
-                        'is_verified' => false
+                        'is_verified' => true
                     ]
                 );
                 
