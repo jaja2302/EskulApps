@@ -1,41 +1,6 @@
 <x-layouts.guest>
     <!-- Bagian Hero -->
     <div class="relative bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen">
-        <!-- Navigasi -->
-        <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
-            <div class="w-full backdrop-blur-md bg-blue-600/90 transition-all duration-300 shadow-lg">
-                <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <div class="flex items-center space-x-2">
-                        <img src="{{ asset('images/sekolah.webp') }}" alt="Logo" class="h-8 w-8">
-                        <div class="text-white text-2xl font-bold">ExtraSchool</div>
-                    </div>
-                    <!-- Tombol menu mobile -->
-                    <div class="md:hidden">
-                        <button type="button" class="text-white" id="mobile-menu-button">
-                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <!-- Menu desktop -->
-                    <div class="hidden md:flex space-x-8">
-                        <a href="#about" class="text-white hover:text-blue-200 transition-colors">Tentang</a>
-                        <a href="#activities" class="text-white hover:text-blue-200 transition-colors">Kegiatan</a>
-                        <a href="#schedule" class="text-white hover:text-blue-200 transition-colors">Jadwal</a>
-
-                    </div>
-                </div>
-            </div>
-            <!-- Menu mobile -->
-            <div class="hidden md:hidden" id="mobile-menu">
-                <div class="bg-blue-600/95 backdrop-blur-md px-4 pt-2 pb-3 space-y-1">
-                    <a href="#about" class="block text-white py-2">Tentang</a>
-                    <a href="#activities" class="block text-white py-2">Kegiatan</a>
-                    <a href="#schedule" class="block text-white py-2">Jadwal</a>
-                </div>
-            </div>
-        </nav>
-
         <!-- Konten Hero -->
         <div class="max-w-7xl mx-auto px-4 min-h-screen flex items-center pt-16">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -72,44 +37,25 @@
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-3xl font-bold text-center mb-12" data-aos="fade-up">Kegiatan Kami</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach ($eskuls as $eskul)
                 <!-- Olahraga -->
                 <div class="bg-white rounded-xl shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300"
                      data-aos="fade-right"
                      data-aos-delay="100">
                     <div class="h-48 bg-blue-500 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-blue-600 transform -skew-y-6 scale-125"></div>
+                        <img src="{{ Storage::url($eskul->image) }}" alt="{{ $eskul->name }}" class="w-full h-full object-cover">
                     </div>
                     <div class="p-6">
-                        <h3 class="font-bold text-xl mb-2">Olahraga</h3>
-                        <p class="text-gray-600">Basket, Sepak Bola, Voli, dan lainnya. Tetap aktif dan bangun semangat tim!</p>
+                        <h3 class="font-bold text-xl mb-2">{{ $eskul->name }}</h3>
+                        <p class="text-gray-600 mb-4">{{ $eskul->description }}</p>
+                        <a href="{{ route('guest.eskul.detail', $eskul->id) }}" 
+                           target="_blank"
+                           class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                            Lihat Detail
+                        </a>
                     </div>
                 </div>
-
-                <!-- Seni -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300"
-                     data-aos="fade-up"
-                     data-aos-delay="200">
-                    <div class="h-48 bg-purple-500 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-purple-600 transform -skew-y-6 scale-125"></div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="font-bold text-xl mb-2">Seni & Budaya</h3>
-                        <p class="text-gray-600">Musik, Tari, Teater, dan Seni Rupa. Ekspresikan dirimu secara kreatif!</p>
-                    </div>
-                </div>
-
-                <!-- Akademik -->
-                <div class="bg-white rounded-xl shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300"
-                     data-aos="fade-left"
-                     data-aos-delay="300">
-                    <div class="h-48 bg-green-500 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-green-600 transform -skew-y-6 scale-125"></div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="font-bold text-xl mb-2">Klub Akademik</h3>
-                        <p class="text-gray-600">Klub Sains, Tim Debat, Robotika, dan lainnya. Perluas pengetahuanmu!</p>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>
@@ -119,19 +65,19 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
                 <div data-aos="zoom-in" data-aos-delay="100">
-                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="20">0</div>
+                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="{{ $stats['kegiatan'] }}">0</div>
                     <div class="text-gray-600">Kegiatan</div>
                 </div>
                 <div data-aos="zoom-in" data-aos-delay="200">
-                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="500">0</div>
+                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="{{ $stats['siswaAktif'] }}">0</div>
                     <div class="text-gray-600">Siswa Aktif</div>
                 </div>
                 <div data-aos="zoom-in" data-aos-delay="300">
-                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="50">0</div>
+                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="{{ $stats['mentorAhli'] }}">0</div>
                     <div class="text-gray-600">Mentor Ahli</div>
                 </div>
                 <div data-aos="zoom-in" data-aos-delay="400">
-                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="100">0</div>
+                    <div class="text-4xl font-bold text-blue-600 mb-2" data-counter="{{ $stats['penghargaan'] }}">0</div>
                     <div class="text-gray-600">Penghargaan</div>
                 </div>
             </div>
@@ -159,68 +105,8 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8" data-aos="fade-up">
-                <div>
-                    <h3 class="text-xl font-bold mb-4">ExtraSchool</h3>
-                    <p class="text-gray-400">Mengembangkan bakat, membangun masa depan.</p>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4">Tautan Cepat</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Tentang Kami</a></li>
-                        <li><a href="#" class="hover:text-white">Kegiatan</a></li>
-                        <li><a href="#" class="hover:text-white">Jadwal</a></li>
-                        <li><a href="#" class="hover:text-white">Kontak</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4">Kegiatan</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li><a href="#" class="hover:text-white">Olahraga</a></li>
-                        <li><a href="#" class="hover:text-white">Seni & Budaya</a></li>
-                        <li><a href="#" class="hover:text-white">Klub Akademik</a></li>
-                        <li><a href="#" class="hover:text-white">Acara Khusus</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold mb-4">Hubungi Kami</h4>
-                    <ul class="space-y-2 text-gray-400">
-                        <li>Jl. Sekolah No. 123</li>
-                        <li>Kota, Provinsi 12345</li>
-                        <li>Telepon: (123) 456-7890</li>
-                        <li>Email: info@extraschool.com</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </footer>
-
     <!-- Script -->
     <script>
-        // Fungsi navbar
-        const navbar = document.getElementById('navbar').querySelector('div');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        // Toggle menu mobile
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        // Perubahan warna navbar saat scroll
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 50) {
-                navbar.classList.add('bg-blue-600/95');
-                navbar.classList.add('shadow-lg');
-            } else {
-                navbar.classList.remove('bg-blue-600/95');
-                navbar.classList.remove('shadow-lg');
-            }
-        });
-
         // Animasi penghitung angka
         const startCounters = (entries, observer) => {
             entries.forEach(entry => {

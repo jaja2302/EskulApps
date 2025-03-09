@@ -190,14 +190,32 @@ class DashboardEskul extends Component implements HasForms, HasTable
                             ->form(formGallery())
                             ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
                             ->action(function (Eskul $record, array $data) {
+                                $link_video = null;
+                                $description_video = null;
+                                
+                                // dd($data);
+                                
+                                if (!empty($data['media_link'])) {
+                                    $link_video = implode(';', array_column($data['media_link'], 'link_video'));
+                                    $description_video = implode(';', array_column($data['media_link'], 'description_video'));
+                                }
+                                
+                                // dd([
+                                //     'data' => $data,
+                                //     'link_video' => $link_video,
+                                //     'description_video' => $description_video,
+                                // ]);
+                                
                                 EskulGallery::create([
                                     'eskul_id' => $record->id,
                                     'uploaded_by' => auth()->id(),
                                     'title' => $data['title'],
                                     'description' => $data['description'],
-                                    'media_type' => pathinfo($data['media'], PATHINFO_EXTENSION) === 'mp4' ? 'video' : 'image',
                                     'file_path' => $data['media'],
                                     'event_date' => $data['event_date'],
+                                    'title_video' => $data['title_video'],
+                                    'description_video' => $description_video,
+                                    'link_video' => $link_video,
                                 ]);
 
                                 Notification::make()

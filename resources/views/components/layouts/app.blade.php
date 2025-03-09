@@ -14,7 +14,7 @@
             }
         </style>
         @filamentStyles
-        @vite('resources/css/app.css','resources/js/app.js')
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="min-h-screen dark:bg-gray-900 transition-colors duration-300">
         <div class="min-h-screen">

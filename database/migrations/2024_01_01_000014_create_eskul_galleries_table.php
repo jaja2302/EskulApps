@@ -15,8 +15,11 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('media_type'); // image/video
-            $table->string('file_path');
+            $table->text('file_path');
             $table->date('event_date');
+            $table->string('title_video')->nullable();
+            $table->text('description_video')->nullable();
+            $table->string('link_video')->nullable();
             $table->timestamps();
         });
     }

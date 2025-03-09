@@ -169,12 +169,23 @@ function formGallery(): array
             ->label('Deskripsi')
             ->required(),
         FileUpload::make('media')
-            ->label('Media (Foto/Video)')
+            ->label('Media (Foto)')
             ->directory('eskul/gallery')
-            ->acceptedFileTypes(['image/*', 'video/mp4'])
-            ->maxSize(50000)
+            ->multiple()
+            ->image()
+            ->maxSize(2048)
             ->required()
             ->visibility('private'),
+        TextInput::make('title_video')
+            ->label('Judul Video'),
+        Repeater::make('media_link')
+            ->label('Tambahkan video yang ingin ditampilkan berupa link youtube jika video tersedia')
+            ->schema([
+                TextInput::make('description_video')
+                ->label('Deskripsi Video'),
+                TextInput::make('link_video')
+                ->label('Link Video'),
+            ]),
         DatePicker::make('event_date')
             ->label('Tanggal Event')
             ->required(),
