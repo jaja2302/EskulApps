@@ -34,6 +34,10 @@ class AttedanceWidgetTable extends BaseWidget
                     ->label('Nama Siswa')
                     ->searchable()
                     ->sortable(),
+                    TextColumn::make('status')
+                    ->label('Status')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('check_in_time')
                     ->label('Check In')
                     ->sortable(),
