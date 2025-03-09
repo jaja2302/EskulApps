@@ -85,9 +85,9 @@ class AttedanceWidgetTable extends BaseWidget
                 // In your bulk action for KUPA PDF export
                 BulkAction::make('delete')
                     ->requiresConfirmation()
-                    ->label('Hapus Kupa')
+                    ->label('Hapus Attendance')
                     ->icon('heroicon-m-trash')
-                    ->visible(auth()->user()->can('hapus_kupa'))
+                    ->visible(auth()->user()->can('edit attendance'))
                     ->color('danger')
                     ->deselectRecordsAfterCompletion()
                     ->action(function (Collection $records) {
