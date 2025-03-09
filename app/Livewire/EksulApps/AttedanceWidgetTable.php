@@ -13,7 +13,7 @@ use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
-
+use Filament\Tables\Actions\BulkAction;
 class AttedanceWidgetTable extends BaseWidget
 {
     public $eskul;
@@ -81,6 +81,26 @@ class AttedanceWidgetTable extends BaseWidget
                     ])
                     ->preload(),
             ])
+            ->bulkActions([
+                // In your bulk action for KUPA PDF export
+                BulkAction::make('delete')
+                    ->requiresConfirmation()
+                    ->label('Hapus Kupa')
+                    ->icon('heroicon-m-trash')
+                    ->visible(auth()->user()->can('hapus_kupa'))
+                    ->color('danger')
+                    ->deselectRecordsAfterCompletion()
+                    ->action(function (Collection $records) {
+                        $records->each(function (Attendance $record) {
+                            $record->delete();
+                            Notification::make()
+                                ->title("Berhasil di Hapus")
+                                ->body("Attendance berhasil dihapus")
+                                ->success()
+                                ->send();
+                        });
+                    }),
+                ])
             ->actions([
                 Action::make('verifikasi')
                     ->label(fn ($record) => $record->is_verified == 1 ? 'Sudah Diverifikasi' : 'Verifikasi')
