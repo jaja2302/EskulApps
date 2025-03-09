@@ -2,16 +2,14 @@
 
 namespace Database\Seeders;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use League\Csv\Reader;
-use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Eskul;
 use App\Models\EskulSchedule;
 use App\Models\Attendance;
 use App\Models\EskulMember;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class AttendanceAndMemberSeeder extends Seeder
 {
@@ -24,167 +22,125 @@ class AttendanceAndMemberSeeder extends Seeder
     {
         $this->command->info('Starting attendance and member import...');
         
-        $csvPath = storage_path('app/DaftarAbsensi.csv');
-        
-        // Check if file exists
-        if (!file_exists($csvPath)) {
-            $this->command->error("File CSV tidak ditemukan: $csvPath");
-            return;
-        }
+        $totalAttendanceCreated = 0;
+        $totalMembersCreated = 0;
+        $totalSkipped = 0;
 
-        // Create CSV reader
-        $csv = Reader::createFromPath($csvPath, 'r');
-        $csv->setDelimiter(','); // Delimiter koma
-        $csv->setHeaderOffset(0); // Assuming first row contains headers
-
-        // Count for statistics
-        $processed = 0;
-        $attendanceCreated = 0;
-        $membersCreated = 0;
-        $skipped = 0;
-
-        // We need an admin user to set as the "added_by" for members
-        $admin = User::whereHas('roles', function($q) {
-            $q->where('name', 'admin');
-        })->first();
-
-        if (!$admin) {
-            $this->command->warn("No admin user found. Using the first user available as 'added_by'");
-            $admin = User::first();
+        // Process buku1.xlsx to buku7.xlsx
+        for ($bookNumber = 1; $bookNumber <= 7; $bookNumber++) {
+            $path = storage_path("app/buku{$bookNumber}.xlsx");
             
-            if (!$admin) {
-                $this->command->error("No users found in the database. Cannot proceed.");
-                return;
+            if (!file_exists($path)) {
+                $this->command->warn("File buku{$bookNumber}.xlsx tidak ditemukan, melanjutkan ke file berikutnya...");
+                continue;
             }
-        }
 
-        $this->command->getOutput()->progressStart(count($csv));
-
-        // Track unique student-eskul pairs to avoid duplicate processing
-        $processedPairs = [];
-
-        foreach ($csv as $record) {
-            $processed++;
+            $this->command->info("Memproses buku{$bookNumber}.xlsx...");
             
-            try {
-                // Find student by name
-                $student = User::where('name', $record['nama_siswa'])
-                            ->whereHas('roles', function($q) {
-                                $q->where('name', 'siswa');
-                            })
-                            ->first();
-                
-                if (!$student) {
-                    $this->command->warn("Siswa tidak ditemukan: {$record['nama_siswa']}");
-                    $skipped++;
-                    $this->command->getOutput()->progressAdvance();
-                    continue;
-                }
+            $spreadsheet = IOFactory::load($path);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            // Skip header row
+            array_shift($rows);
 
-                // Find eskul by name
-                $eskul = Eskul::where('name', $record['nama_eskul'])->first();
-                if (!$eskul) {
-                    $this->command->warn("Eskul tidak ditemukan: {$record['nama_eskul']}");
-                    $skipped++;
-                    $this->command->getOutput()->progressAdvance();
-                    continue;
-                }
-                
-                // Parse date
+            $attendanceCreated = 0;
+            $membersCreated = 0;
+            $skipped = 0;
+
+            foreach ($rows as $row) {
                 try {
-                    // Assuming date format is DD/MM/YYYY in CSV
-                    $carbonDate = Carbon::createFromFormat('d/m/Y', $record['tanggal']);
-                    $date = $carbonDate->format('Y-m-d');
-                    $dayOfWeek = $carbonDate->format('l'); // Get day name (Monday, Tuesday, etc.)
-                } catch (\Exception $e) {
-                    $this->command->warn("Format tanggal tidak valid: {$record['tanggal']}");
-                    $skipped++;
-                    $this->command->getOutput()->progressAdvance();
-                    continue;
-                }
-                
-                // PART 1: ENSURE STUDENT IS A MEMBER OF THE ESKUL
-                // Check if this student-eskul pair has been processed
-                $pairKey = $student->id . '-' . $eskul->id;
-                if (!isset($processedPairs[$pairKey])) {
-                    // Check if the student is already a member of this eskul
-                    $existingMembership = EskulMember::where('student_id', $student->id)
-                                            ->where('eskul_id', $eskul->id)
-                                            ->first();
+                    // Get data from columns
+                    $studentName = $row[0];
+                    $eskulName = $row[1];
+                    $date = Carbon::createFromFormat('d/m/Y', $row[2])->format('Y-m-d');
+                    $status = strtolower($row[3]);
                     
-                    if (!$existingMembership) {
-                        // Create a new membership
-                        EskulMember::create([
+                    // Convert 'tidak hadir' to 'alpha'
+                    if ($status === 'tidak hadir') {
+                        $status = 'alpha';
+                    }
+
+                    // Find student and eskul
+                    $student = User::where('name', $studentName)
+                        ->whereHas('roles', function($q) {
+                            $q->where('name', 'siswa');
+                        })->first();
+                    
+                    $eskul = Eskul::where('name', $eskulName)->first();
+
+                    if (!$student || !$eskul) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    // Get or create schedule for this date
+                    $dayName = Carbon::parse($date)->format('l'); // Gets day name (Monday, Tuesday, etc.)
+                    $schedule = EskulSchedule::firstOrCreate(
+                        [
+                            'eskul_id' => $eskul->id,
+                            'day' => $dayName,
+                        ],
+                        [
+                            'start_time' => '14:00:00',  // Default time
+                            'end_time' => '16:00:00',    // Default time
+                            'location' => 'Default Location',
+                            'is_active' => true
+                        ]
+                    );
+
+                    // Register student to eskul if not already registered
+                    $member = EskulMember::firstOrCreate(
+                        [
                             'student_id' => $student->id,
                             'eskul_id' => $eskul->id,
-                            'added_by' => $admin->id,
+                        ],
+                        [
                             'is_active' => true,
-                            'join_date' => $date, // Use the attendance date as join date
-                            'notes' => 'Auto-generated from attendance import'
-                        ]);
-                        
+                            'join_date' => $date,
+                            'notes' => 'Auto-generated from attendance import',
+                            'added_by' => 1
+                        ]
+                    );
+
+                    if ($member->wasRecentlyCreated) {
                         $membersCreated++;
                     }
-                    
-                    // Mark this pair as processed
-                    $processedPairs[$pairKey] = true;
+
+                    // Create attendance record with schedule_id and check_in_time
+                    Attendance::updateOrCreate(
+                        [
+                            'eskul_id' => $eskul->id,
+                            'student_id' => $student->id,
+                            'date' => $date,
+                        ],
+                        [
+                            'status' => $status,
+                            'is_verified' => true,
+                            'schedule_id' => $schedule->id,
+                            'check_in_time' => Carbon::parse($date)->setTime(14, 0, 0), // Set to 14:00:00 of the attendance date
+                            'verified_by' => 1,  // Set admin as verifier
+                            'verified_at' => now()  // Set verification time
+                        ]
+                    );
+
+                    $attendanceCreated++;
+
+                } catch (\Exception $e) {
+                    $this->command->error("Error on row: " . $e->getMessage());
+                    $skipped++;
                 }
-                
-                // PART 2: FIND OR CREATE SCHEDULE
-                // Find schedule for this eskul and day of week
-                $schedule = EskulSchedule::where('eskul_id', $eskul->id)
-                                ->where('day', $dayOfWeek)
-                                ->where('is_active', true)
-                                ->first();
-                                
-                if (!$schedule) {
-                    // Create a new schedule if one doesn't exist
-                    $schedule = EskulSchedule::create([
-                        'eskul_id' => $eskul->id,
-                        'day' => $dayOfWeek,
-                        'start_time' => '14:00:00', // Default start time
-                        'end_time' => '16:00:00',   // Default end time
-                        'location' => $eskul->meeting_location ?? 'Default Location',
-                        'notes' => 'Auto-generated schedule from attendance import',
-                        'is_active' => true
-                    ]);
-                }
-                
-                // PART 3: CREATE ATTENDANCE RECORD
-                // Validate status
-                $validStatuses = ['hadir', 'izin', 'sakit', 'alpha'];
-                $status = strtolower(trim($record['keterangan']));
-                if (!in_array($status, $validStatuses)) {
-                    $status = 'hadir'; // Default to hadir if invalid
-                }
-                
-                // Create or update attendance record
-                $attendance = Attendance::updateOrCreate(
-                    [
-                        'eskul_id' => $eskul->id,
-                        'schedule_id' => $schedule->id,
-                        'student_id' => $student->id,
-                        'date' => $date,
-                    ],
-                    [
-                        'check_in_time' => $carbonDate->setTimeFromTimeString($schedule->start_time),
-                        'status' => $status,
-                        'notes' => $record['notes'] ?? null,
-                        'is_verified' => true
-                    ]
-                );
-                
-                $attendanceCreated++;
-                
-            } catch (\Exception $e) {
-                $this->command->error("Error processing row for {$record['nama_siswa']}: " . $e->getMessage());
-                $skipped++;
             }
-            
-            $this->command->getOutput()->progressAdvance();
+
+            $totalAttendanceCreated += $attendanceCreated;
+            $totalMembersCreated += $membersCreated;
+            $totalSkipped += $skipped;
+
+            $this->command->info("Selesai memproses buku{$bookNumber}.xlsx");
+            $this->command->info("Attendance: $attendanceCreated, New Members: $membersCreated, Skipped: $skipped");
         }
-        
-        $this->command->getOutput()->progressFinish();
-        $this->command->info("Import selesai. Processed: $processed, Attendance created: $attendanceCreated, Members created: $membersCreated, Skipped: $skipped");
+
+        $this->command->info("Import selesai untuk semua buku.");
+        $this->command->info("Total Attendance: $totalAttendanceCreated, Total New Members: $totalMembersCreated, Total Skipped: $totalSkipped");
     }
 }

@@ -67,14 +67,32 @@ class KmeansService
             ->whereBetween('date', [$this->startDate, $this->endDate])
             ->count();
         
-        // Hitung kehadiran siswa dalam periode
-        $studentAttendance = Attendance::where('eskul_id', $eskulId)
+        // Hitung kehadiran siswa berdasarkan status
+        $attendanceByStatus = Attendance::where('eskul_id', $eskulId)
             ->where('student_id', $studentId)
             ->where('is_verified', 1)
             ->whereBetween('date', [$this->startDate, $this->endDate])
-            ->count();
-            
-        return ($totalSessions > 0) ? ($studentAttendance / $totalSessions) * 100 : 0;
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+        
+        // Bobot untuk setiap status
+        $statusWeights = [
+            'hadir' => 1.0,    // 100% dari nilai
+            'izin' => 0.75,    // 75% dari nilai
+            'sakit' => 0.75,   // 75% dari nilai
+            'alpha' => 0,      // 0% dari nilai
+        ];
+        
+        // Hitung skor berbobot
+        $weightedScore = 0;
+        foreach ($attendanceByStatus as $status => $count) {
+            $weight = $statusWeights[strtolower($status)] ?? 0;
+            $weightedScore += $count * $weight;
+        }
+        
+        return ($totalSessions > 0) ? ($weightedScore / $totalSessions) * 100 : 0;
     }
     
     private function calculateParticipationScore($studentId, $eskulId)
