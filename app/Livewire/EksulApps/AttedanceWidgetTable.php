@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\BulkAction;
+use Illuminate\Support\Collection;
+use Filament\Notifications\Notification;
+
 class AttedanceWidgetTable extends BaseWidget
 {
     public $eskul;
