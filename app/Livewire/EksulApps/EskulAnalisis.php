@@ -167,7 +167,13 @@ class EskulAnalisis extends Component
         $eskul = Eskul::find($this->eskulId);
         $filename = "analisis-performa-{$eskul->name}-{$this->selectedYear}-semester-{$this->selectedSemester}.xlsx";
         
-        return Excel::download(new AnalysisReport($this->studentMetrics), $filename);
+        return Excel::download(new AnalysisReport(
+            $this->studentMetrics, 
+            $this->clusterStats, 
+            $eskul->name,
+            $this->selectedYear,
+            $this->selectedSemester
+        ), $filename);
     }
 
     public function render()
