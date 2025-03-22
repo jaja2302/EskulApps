@@ -16,6 +16,8 @@ use App\Livewire\EksulApps\DetailEvent;
 use App\Livewire\EksulApps\EskulAnalisis;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\GuestDetailEskul;
+use App\Livewire\EksulApps\ScheduleEskul;
+use App\Http\Controllers\EskulSchedulePdfController;
 
 Route::get('/', [GuestController::class, 'index'])->name('guest.index');
 
@@ -44,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {
         Route::get('/dashboard/eskul', DashboardEskul::class)->name('dashboard.eskul');
         Route::get('/dashboard/eskul/detail/{hash}', DetailEskul::class)->name('eskul.detail');
+        Route::get('/dashboard/eskul/schedule', ScheduleEskul::class)->name('eskul.schedule');
     });
 
     Route::middleware(PermissionMiddleware::using('create event'))->group(function () {
@@ -54,5 +57,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/eskul/{id}', [GuestDetailEskul::class, 'show'])->name('guest.eskul.detail');
+
+Route::get('eskul/schedule/pdf', [EskulSchedulePdfController::class, 'generatePdf'])->name('eskul.schedule.pdf');
 
 

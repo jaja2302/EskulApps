@@ -4,6 +4,8 @@ window.lottie = lottie;
 import $ from 'jquery';
 window.$ = $;
 window.jQuery = $;
+import ApexCharts from 'apexcharts'
+window.ApexCharts = ApexCharts;
 
 // Add debug logging
 console.log('jQuery version:', $.fn.jquery);

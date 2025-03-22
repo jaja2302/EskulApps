@@ -4,7 +4,7 @@
                             <div class="space-y-4">
                                 @role('admin')
                                 <div class="grid grid-cols-2 gap-3">
-                                    <a href="#" class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('manageusers') }}" class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-blue-200 dark:bg-blue-800 mr-3">
                                             <svg class="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -15,7 +15,7 @@
                                         </div>
                                     </a>
                                     
-                                    <a href="#" class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('dashboard.eskul') }}" class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-purple-200 dark:bg-purple-800 mr-3">
                                             <svg class="w-5 h-5 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -26,18 +26,7 @@
                                         </div>
                                     </a>
                                     
-                                    <a href="#" class="flex items-center p-4 bg-green-50 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
-                                        <div class="rounded-full p-2 bg-green-200 dark:bg-green-800 mr-3">
-                                            <svg class="w-5 h-5 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Pendaftaran</p>
-                                        </div>
-                                    </a>
-                                    
-                                    <a href="#" class="flex items-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('eskul.schedule') }}" class="flex items-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-amber-200 dark:bg-amber-800 mr-3">
                                             <svg class="w-5 h-5 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -52,7 +41,7 @@
                                 
                                 @role('user')
                                 <div class="grid grid-cols-2 gap-3">
-                                    <a href="#" class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('profile.show') }}" class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-blue-200 dark:bg-blue-800 mr-3">
                                             <svg class="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -63,7 +52,7 @@
                                         </div>
                                     </a>
                                     
-                                    <a href="#" class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('dashboard.eskul') }}" class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-purple-200 dark:bg-purple-800 mr-3">
                                             <svg class="w-5 h-5 text-purple-600 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -74,7 +63,7 @@
                                         </div>
                                     </a>
                                     
-                                    <a href="#" class="flex items-center p-4 bg-green-50 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
+                                    <a href="{{ route('eskul.schedule') }}" class="flex items-center p-4 bg-green-50 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
                                         <div class="rounded-full p-2 bg-green-200 dark:bg-green-800 mr-3">
                                             <svg class="w-5 h-5 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -82,17 +71,6 @@
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Jadwal Saya</p>
-                                        </div>
-                                    </a>
-                                    
-                                    <a href="#" class="flex items-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg group transition-all duration-200">
-                                        <div class="rounded-full p-2 bg-amber-200 dark:bg-amber-800 mr-3">
-                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-700 dark:text-gray-200">Daftar Ekskul</p>
                                         </div>
                                     </a>
                                 </div>

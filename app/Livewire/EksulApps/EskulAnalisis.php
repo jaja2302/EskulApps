@@ -10,6 +10,10 @@ use App\Models\Eskul;
 use App\Models\User;
 use App\Helpers\HashHelper;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use App\Exports\AnalysisReport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EskulAnalisis extends Component
 {
@@ -20,6 +24,11 @@ class EskulAnalisis extends Component
     public $studentMetrics = [];
     public $clusterStats = [];
     public $academicYears = [];
+    public $pieChartBase64;
+    public $barChartBase64;
+    public $selectedEskul;
+    protected $listeners = ['chartImageUpdated' => 'saveChartImage'];
+    
     // public function mount($hash)
     // {
     //     $id = HashHelper::decrypt($hash);
@@ -30,15 +39,15 @@ class EskulAnalisis extends Component
         $this->eskulId = HashHelper::decrypt($hash);
         $this->selectedYear = date('Y');
         $this->selectedSemester = (date('n') > 6) ? 1 : 2;
-        
+        $this->selectedEskul = Eskul::find($this->eskulId);
         // Get list of academic years
         $this->academicYears = range(date('Y')-2, date('Y'));
     }
 
     public function analyze()
     {
-        // $kmeansService = new KmeansService();
-        $kmeansService = new KmeansServiceWithBobot();
+        $kmeansService = new KmeansService();
+        // $kmeansService = new KmeansServiceWithBobot();
         
         // Get all active students in the eskul using relationship
         $students = EskulMember::with('student')
@@ -82,9 +91,14 @@ class EskulAnalisis extends Component
             ->select('users.name as student_name', 'student_performance_metrics.*')
             ->get();
             
-        // Calculate cluster statistics
         $this->calculateClusterStats();
-        
+
+        // Dispatch event dengan data untuk chart
+        $this->dispatch('chartRender', [
+            'clusterStats' => $this->clusterStats,
+            'studentMetrics' => $this->studentMetrics
+        ]);
+
         $this->results = true;
     }
 
@@ -104,6 +118,56 @@ class EskulAnalisis extends Component
                 ];
             }
         }
+    }
+
+    public function saveChartImage($inputId, $base64Data)
+    {
+        if ($inputId === 'pieChartBase64') {
+            $this->pieChartBase64 = $base64Data;
+        } elseif ($inputId === 'barChartBase64') {
+            $this->barChartBase64 = $base64Data;
+        }
+    }
+
+    public function downloadReport()
+    {
+        if (!$this->results) {
+            return;
+        }
+        
+        // Get eskul name
+        $eskul = Eskul::find($this->eskulId);
+        
+        // Define data for PDF
+        $data = [
+            'eskulName' => $eskul->name,
+            'year' => $this->selectedYear,
+            'semester' => $this->selectedSemester,
+            'clusterStats' => $this->clusterStats,
+            'studentMetrics' => $this->studentMetrics,
+            'generatedAt' => Carbon::now()->format('d M Y H:i'),
+            'pieChartBase64' => $this->pieChartBase64,
+            'barChartBase64' => $this->barChartBase64
+        ];
+        
+        // Generate PDF
+        $pdf = PDF::loadView('pdf.analysis-report', $data);
+        
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, "analisis-performa-{$eskul->name}-{$this->selectedYear}-semester-{$this->selectedSemester}.pdf");
+    }
+
+    public function downloadExcel()
+    {
+        if (!$this->results) {
+            return;
+        }
+        
+        $eskul = Eskul::find($this->eskulId);
+        $filename = "analisis-performa-{$eskul->name}-{$this->selectedYear}-semester-{$this->selectedSemester}.xlsx";
+        
+        return Excel::download(new AnalysisReport($this->studentMetrics), $filename);
     }
 
     public function render()
