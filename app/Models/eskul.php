@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Eskul extends Model
 {
@@ -62,5 +63,10 @@ class Eskul extends Model
     public function galleries(): HasMany
     {
         return $this->hasMany(EskulGallery::class);
+    }
+
+    public function participants(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'eskul_members', 'eskul_id', 'student_id');
     }
 }

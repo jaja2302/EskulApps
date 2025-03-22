@@ -170,7 +170,7 @@ DEFAULT LOGIN:
    Pass: password123
 
 2. Pembimbing (1-3):
-   Email: pembimbing1@example.com
+   Email: pembina1@example.com
    Pass: password123
 
 3. Pelatih (1-10):

@@ -8,7 +8,7 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use App\Livewire\Manageuser\Managementuser;
 use App\Livewire\UserProfile\Profiledetail;
-use App\Livewire\Dashboard;
+use App\Livewire\Dashboard\Dashboard;
 use App\Livewire\EksulApps\DashboardEskul;
 use App\Livewire\EksulApps\DetailEskul;
 use App\Livewire\AnalisisApps\DetailSiswa;
@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware(PermissionMiddleware::using('create event'))->group(function () {
         Route::get('/dashboard/eskul/list-event/{hash}', DetailEvent::class)->name('eskul.list-event');
     });
+
+
 });
 
 Route::get('/eskul/{id}', [GuestDetailEskul::class, 'show'])->name('guest.eskul.detail');
