@@ -79,22 +79,21 @@ class DashboardEskul extends Component implements HasForms, HasTable
             ])
             ->columns([
                 TextColumn::make('name')
+                ->wrap()
+                ->searchable()
+                ->description(fn (Eskul $record): string => $record->description)
                 ->label('Nama Eskul'),
-                TextColumn::make('description')
-                ->label('Deskripsi'),
                 TextColumn::make('pelatih_id')
-                ->label('Pelatih')
-                ->formatStateUsing(fn ($record) => $record->pelatih->name),
-                TextColumn::make('pembina_id')
-                ->label('Pembina')
-                ->formatStateUsing(fn ($record) => $record->pembina->name),
+                ->label('Pelatih Dan Pembina')
+                ->description(fn (Eskul $record): string => 'Pembina :' .' '. $record->pembina->name)
+                ->formatStateUsing(fn ($record) =>'Pelatih :' .' '. $record->pelatih->name),
                 TextColumn::make('category')
-                ->label('Kategori'),
-                TextColumn::make('quota')
-                ->label('Kuota'),
+                ->label('Kategori(Kouta)')
+                ->formatStateUsing(fn ($record) => $record->category .'('. $record->quota.')'),
                 TextColumn::make('meeting_location')
                 ->label('Lokasi Pertemuan'),
                 TextColumn::make('requirements')
+                ->wrap()
                 ->label('Persyaratan'),
             ])
             ->filters([
