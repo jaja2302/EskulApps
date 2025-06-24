@@ -23,6 +23,18 @@
             <span class="tooltip-text">Dashboard Eskul</span>
         </a>
         @endcan
+
+        @if(auth()->user()->hasRole(['admin', 'pembina']))
+        <!-- Analisis Siswa -->
+        <a href="{{ route('analisis-apps.detail-siswa', ['hash' => 'global']) }}" 
+           class="nav-icon tooltip rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200">
+            <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <span class="tooltip-text">Analisis Siswa</span>
+        </a>
+        @endif
+
         @role('admin')
         <!-- Manage Users -->   
         <a href="{{ route('manageusers') }}" 

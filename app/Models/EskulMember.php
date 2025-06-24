@@ -40,4 +40,10 @@ class EskulMember extends Model
     {
         return $this->belongsTo(User::class, 'added_by');
     }
+
+    // Helper method to get student detail
+    public function studentDetail()
+    {
+        return $this->student()->with('detail');
+    }
 } 

@@ -90,6 +90,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get active eskul memberships
+     */
+    public function activeEskulMemberships()
+    {
+        return $this->hasMany(EskulMember::class, 'student_id')->where('is_active', true);
+    }
+
+    /**
      * Get the user's attendance records
      */
     public function attendances()
