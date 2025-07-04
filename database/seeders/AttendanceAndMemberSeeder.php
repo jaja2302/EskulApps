@@ -26,8 +26,10 @@ class AttendanceAndMemberSeeder extends Seeder
         $totalMembersCreated = 0;
         $totalSkipped = 0;
 
+        $bookNumberTotal = 7;    
+
         // Process buku1.xlsx to buku7.xlsx
-        for ($bookNumber = 1; $bookNumber <= 7; $bookNumber++) {
+        for ($bookNumber = 1; $bookNumber <= $bookNumberTotal; $bookNumber++) {
             $path = storage_path("app/buku{$bookNumber}.xlsx");
             
             if (!file_exists($path)) {
