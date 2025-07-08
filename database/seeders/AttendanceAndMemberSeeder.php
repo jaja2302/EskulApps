@@ -10,6 +10,7 @@ use App\Models\EskulSchedule;
 use App\Models\Attendance;
 use App\Models\EskulMember;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceAndMemberSeeder extends Seeder
 {
@@ -49,14 +50,141 @@ class AttendanceAndMemberSeeder extends Seeder
             $attendanceCreated = 0;
             $membersCreated = 0;
             $skipped = 0;
+            $rowNumber = 2; // Start from row 2 (after header)
 
             foreach ($rows as $row) {
                 try {
-                    // Get data from columns
-                    $studentName = $row[0];
-                    $eskulName = $row[1];
-                    $date = Carbon::createFromFormat('d/m/Y', $row[2])->format('Y-m-d');
-                    $status = strtolower($row[3]);
+                    // Log current row being processed
+                    Log::info("ATTENDANCE_SEEDER: Processing row {$rowNumber} in buku{$bookNumber}.xlsx");
+                    
+                    // Check if row has enough columns
+                    if (count($row) < 4) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Not enough columns. Expected 4, got " . count($row), [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'columns_count' => count($row),
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+                    
+                    // Get data from columns with null checks
+                    $studentName = $row[0] ?? null;
+                    $eskulName = $row[1] ?? null;
+                    $dateString = $row[2] ?? null;
+                    $status = $row[3] ?? null;
+                    
+                    // Log raw data
+                    Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} data", [
+                        'file' => "buku{$bookNumber}.xlsx",
+                        'row' => $rowNumber,
+                        'student' => $studentName,
+                        'eskul' => $eskulName,
+                        'date' => $dateString,
+                        'status' => $status
+                    ]);
+                    
+                    // Validate required fields
+                    if (empty($studentName)) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Student name is empty", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+                    
+                    if (empty($eskulName)) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Eskul name is empty", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+                    
+                    if (empty($dateString)) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Date is empty", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+                    
+                    if (empty($status)) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Status is empty", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+                    
+                    // Try to parse date with better error handling
+                    try {
+                        $date = Carbon::createFromFormat('d/m/Y', $dateString)->format('Y-m-d');
+                        Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} date parsed successfully", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'original_date' => $dateString,
+                            'parsed_date' => $date
+                        ]);
+                    } catch (\Exception $dateError) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Failed to parse date", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'date_string' => $dateString,
+                            'error' => $dateError->getMessage(),
+                            'raw_data' => $row
+                        ]);
+                        
+                        // Try alternative date formats
+                        $alternativeFormats = ['Y-m-d', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
+                        $dateParsed = false;
+                        
+                        foreach ($alternativeFormats as $format) {
+                            try {
+                                $date = Carbon::createFromFormat($format, $dateString)->format('Y-m-d');
+                                Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} date parsed with alternative format", [
+                                    'file' => "buku{$bookNumber}.xlsx",
+                                    'row' => $rowNumber,
+                                    'format_used' => $format,
+                                    'original_date' => $dateString,
+                                    'parsed_date' => $date
+                                ]);
+                                $dateParsed = true;
+                                break;
+                            } catch (\Exception $e) {
+                                // Continue to next format
+                            }
+                        }
+                        
+                        if (!$dateParsed) {
+                            Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Could not parse date with any format", [
+                                'file' => "buku{$bookNumber}.xlsx",
+                                'row' => $rowNumber,
+                                'date_string' => $dateString,
+                                'tried_formats' => $alternativeFormats,
+                                'raw_data' => $row
+                            ]);
+                            $skipped++;
+                            $rowNumber++;
+                            continue;
+                        }
+                    }
+                    
+                    $status = strtolower($status);
                     
                     // Convert 'tidak hadir' to 'alpha'
                     if ($status === 'tidak hadir') {
@@ -71,10 +199,38 @@ class AttendanceAndMemberSeeder extends Seeder
                     
                     $eskul = Eskul::where('name', $eskulName)->first();
 
-                    if (!$student || !$eskul) {
+                    if (!$student) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Student not found", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'student_name' => $studentName,
+                            'raw_data' => $row
+                        ]);
                         $skipped++;
+                        $rowNumber++;
                         continue;
                     }
+                    
+                    if (!$eskul) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Eskul not found", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'eskul_name' => $eskulName,
+                            'raw_data' => $row
+                        ]);
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
+                    }
+
+                    Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} found records", [
+                        'file' => "buku{$bookNumber}.xlsx",
+                        'row' => $rowNumber,
+                        'student_id' => $student->id,
+                        'student_name' => $student->name,
+                        'eskul_id' => $eskul->id,
+                        'eskul_name' => $eskul->name
+                    ]);
 
                     // Get or create schedule for this date
                     $dayName = Carbon::parse($date)->format('l'); // Gets day name (Monday, Tuesday, etc.)
@@ -107,6 +263,12 @@ class AttendanceAndMemberSeeder extends Seeder
 
                     if ($member->wasRecentlyCreated) {
                         $membersCreated++;
+                        Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} created new member", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'student_id' => $student->id,
+                            'eskul_id' => $eskul->id
+                        ]);
                     }
 
                     // Create attendance record with schedule_id and check_in_time
@@ -127,11 +289,29 @@ class AttendanceAndMemberSeeder extends Seeder
                     );
 
                     $attendanceCreated++;
+                    Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} attendance record created/updated successfully", [
+                        'file' => "buku{$bookNumber}.xlsx",
+                        'row' => $rowNumber,
+                        'student_id' => $student->id,
+                        'eskul_id' => $eskul->id,
+                        'date' => $date,
+                        'status' => $status
+                    ]);
 
                 } catch (\Exception $e) {
-                    $this->command->error("Error on row: " . $e->getMessage());
+                    Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Unexpected error", [
+                        'file' => "buku{$bookNumber}.xlsx",
+                        'row' => $rowNumber,
+                        'error_message' => $e->getMessage(),
+                        'error_line' => $e->getLine(),
+                        'error_file' => $e->getFile(),
+                        'stack_trace' => $e->getTraceAsString(),
+                        'raw_data' => $row
+                    ]);
                     $skipped++;
                 }
+                
+                $rowNumber++;
             }
 
             $totalAttendanceCreated += $attendanceCreated;
