@@ -10,6 +10,7 @@ use App\Models\Eskul;
 use App\Models\EskulEvent;
 use App\Models\EskulEventParticipant;
 use App\Models\Achievement;
+use Illuminate\Support\Facades\Log;
 
 class EventSeeder extends Seeder
 {
@@ -24,20 +25,20 @@ class EventSeeder extends Seeder
         } catch (\Exception $e) {
             // If that fails, try manual parsing
             $parts = explode(' ', $dateString);
-            
+
             if (count($parts) == 3) {
                 $day = (int)$parts[0];
                 $month = $this->getMonthNumber($parts[1]);
                 $year = (int)$parts[2];
-                
+
                 return Carbon::createFromDate($year, $month, $day);
             }
-            
+
             // If all else fails, throw exception
             throw new \Exception("Could not parse date: $dateString");
         }
     }
-    
+
     /**
      * Convert Indonesian month name to number
      */
@@ -80,18 +81,18 @@ class EventSeeder extends Seeder
             'dec' => 12,
             'des' => 12
         ];
-        
+
         $key = strtolower($monthName);
-        
+
         if (isset($months[$key])) {
             return $months[$key];
         }
-        
+
         // If month name not found, try to parse as number
         if (is_numeric($monthName)) {
             return (int)$monthName;
         }
-        
+
         throw new \Exception("Unknown month: $monthName");
     }
     /**
@@ -102,67 +103,67 @@ class EventSeeder extends Seeder
     public function run()
     {
         $this->command->info('Starting event, participant, and achievement import...');
-        
+
         // Get admin user for created_by field
-        $admin = User::whereHas('roles', function($q) {
+        $admin = User::whereHas('roles', function ($q) {
             $q->where('name', 'admin');
         })->first();
 
         if (!$admin) {
             $this->command->warn("No admin user found. Using the first user available as 'created_by'");
             $admin = User::first();
-            
+
             if (!$admin) {
                 $this->command->error("No users found in the database. Cannot proceed.");
                 return;
             }
         }
-        
+
         // Step 1: Import events
         $this->importEvents($admin);
-        
+
         // Step 2: Import participants
         $this->importParticipants();
-        
+
         // Step 3: Import achievements
-        $this->importAchievements();
-        
+        // $this->importAchievements();
+
         $this->command->info("Import completed successfully!");
     }
-    
+
     /**
      * Import events from CSV
      */
     private function importEvents($admin)
     {
         $this->command->info('Importing events...');
-        
+
         $csvPath = storage_path('app/events.csv');
-        
+
         if (!file_exists($csvPath)) {
             $this->command->error("File CSV tidak ditemukan: $csvPath");
             return;
         }
-        
+
         // Create CSV reader
         $csv = Reader::createFromPath($csvPath, 'r');
         $csv->setDelimiter(',');
         $csv->setHeaderOffset(0);
-        
+
         $eventsCreated = 0;
         $skipped = 0;
-        
+
         $this->command->getOutput()->progressStart(count($csv));
-        
+
         // Track processed events to avoid duplicates
         $processedEvents = [];
-        
+
         foreach ($csv as $record) {
             try {
                 $eventTitle = $record['nama_event'];
                 $eskulName = $record['nama_eskul'];
                 $dateRange = $record['tanggal_event'];
-                
+
                 // Find the eskul
                 $eskul = Eskul::where('name', $eskulName)->first();
                 if (!$eskul) {
@@ -171,26 +172,26 @@ class EventSeeder extends Seeder
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Check if this event has been processed already
                 $eventKey = $eventTitle . '-' . $eskulName;
                 if (isset($processedEvents[$eventKey])) {
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Parse date range (format: DD MM YYYY - DD MM YYYY)
                 try {
                     $dates = explode(' - ', $dateRange);
-                    
+
                     // For start date - parse in English format with numeric month
                     $startDate = $this->parseCustomDate(trim($dates[0]));
-                    
+
                     // For end date
-                    $endDate = isset($dates[1]) 
+                    $endDate = isset($dates[1])
                         ? $this->parseCustomDate(trim($dates[1]))
                         : $startDate->copy();
-                    
+
                     // Set times (default start at 8 AM, end at 4 PM)
                     $startDatetime = $startDate->setTime(8, 0, 0);
                     $endDatetime = $endDate->setTime(16, 0, 0);
@@ -200,7 +201,7 @@ class EventSeeder extends Seeder
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Create event
                 EskulEvent::create([
                     'eskul_id' => $eskul->id,
@@ -217,67 +218,71 @@ class EventSeeder extends Seeder
                     'status' => 'pending',
                     'achievement_type' => 'juara_1' // Default, will be updated based on achievements
                 ]);
-                
+
                 $eventsCreated++;
                 $processedEvents[$eventKey] = true;
-                
             } catch (\Exception $e) {
                 $this->command->error("Error processing event: " . $e->getMessage());
                 $skipped++;
             }
-            
+
             $this->command->getOutput()->progressAdvance();
         }
-        
+
         $this->command->getOutput()->progressFinish();
         $this->command->info("Events created: $eventsCreated, Skipped: $skipped");
     }
-    
+
     /**
      * Import participants from CSV
      */
     private function importParticipants()
     {
         $this->command->info('Importing participants...');
-        
+
         $csvPath = storage_path('app/participants.csv');
-        
+
         if (!file_exists($csvPath)) {
             $this->command->error("File CSV tidak ditemukan: $csvPath");
             return;
         }
-        
+
         // Create CSV reader
         $csv = Reader::createFromPath($csvPath, 'r');
-        $csv->setDelimiter(',');
+        $csv->setDelimiter(';');
         $csv->setHeaderOffset(0);
-        
+
         $participantsCreated = 0;
         $skipped = 0;
-        
+
         $this->command->getOutput()->progressStart(count($csv));
-        
+
+
         foreach ($csv as $record) {
+            $tes_record = json_encode($record);
+            Log::info("ATTENDANCE_SEEDER: Processing row {$tes_record}");
             try {
                 $eskulName = $record['eskul_nama'];
                 $studentName = $record['nama_siswa'];
                 $eventTitle = $record['deskripsi_event'];
                 $dateRange = $record['tanggal_event'];
-                
+                Log::info("ATTENDANCE_SEEDER: Processing row {$eskulName}");
+
+
                 // Find the student
                 $student = User::where('name', $studentName)
-                    ->whereHas('roles', function($q) {
+                    ->whereHas('roles', function ($q) {
                         $q->where('name', 'siswa');
                     })
                     ->first();
-                
+
                 if (!$student) {
                     $this->command->warn("Siswa tidak ditemukan: $studentName");
                     $skipped++;
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Find the eskul
                 $eskul = Eskul::where('name', $eskulName)->first();
                 if (!$eskul) {
@@ -286,19 +291,19 @@ class EventSeeder extends Seeder
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Find the event
                 $event = EskulEvent::where('title', $eventTitle)
                     ->where('eskul_id', $eskul->id)
                     ->first();
-                
+
                 if (!$event) {
                     $this->command->warn("Event tidak ditemukan: $eventTitle for $eskulName");
                     $skipped++;
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Create participant entry
                 $participant = EskulEventParticipant::updateOrCreate(
                     [
@@ -310,45 +315,44 @@ class EventSeeder extends Seeder
                         'notes' => "Participated in $eventTitle"
                     ]
                 );
-                
+
                 $participantsCreated++;
-                
             } catch (\Exception $e) {
                 $this->command->error("Error processing participant: " . $e->getMessage());
                 $skipped++;
             }
-            
+
             $this->command->getOutput()->progressAdvance();
         }
-        
+
         $this->command->getOutput()->progressFinish();
         $this->command->info("Participants created: $participantsCreated, Skipped: $skipped");
     }
-    
+
     /**
      * Import achievements from CSV
      */
     private function importAchievements()
     {
         $this->command->info('Importing achievements...');
-        
+
         $csvPath = storage_path('app/achievements.csv');
-        
+
         if (!file_exists($csvPath)) {
             $this->command->error("File CSV tidak ditemukan: $csvPath");
             return;
         }
-        
+
         // Create CSV reader
         $csv = Reader::createFromPath($csvPath, 'r');
         $csv->setDelimiter(',');
         $csv->setHeaderOffset(0);
-        
+
         $achievementsCreated = 0;
         $skipped = 0;
-        
+
         $this->command->getOutput()->progressStart(count($csv));
-        
+
         foreach ($csv as $record) {
             try {
                 $eskulName = $record['eskul_nama'];
@@ -356,21 +360,21 @@ class EventSeeder extends Seeder
                 $eventTitle = $record['deskripsi_event'];
                 $achievement = $record['status_event'];
                 $dateRange = $record['tanggal_event'];
-                
+
                 // Find the student
                 $student = User::where('name', $studentName)
-                    ->whereHas('roles', function($q) {
+                    ->whereHas('roles', function ($q) {
                         $q->where('name', 'siswa');
                     })
                     ->first();
-                
+
                 if (!$student) {
                     $this->command->warn("Siswa tidak ditemukan: $studentName");
                     $skipped++;
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Find the eskul
                 $eskul = Eskul::where('name', $eskulName)->first();
                 if (!$eskul) {
@@ -379,7 +383,7 @@ class EventSeeder extends Seeder
                     $this->command->getOutput()->progressAdvance();
                     continue;
                 }
-                
+
                 // Parse date range for achievement date
                 try {
                     $dates = explode(' - ', $dateRange);
@@ -388,11 +392,11 @@ class EventSeeder extends Seeder
                     $this->command->warn("Format tanggal tidak valid: $dateRange");
                     $achievementDate = Carbon::now();
                 }
-                
+
                 // Map achievement to level and position
                 $level = 'Kabupaten/Kota'; // Default level
                 $position = '';
-                
+
                 if (stripos($achievement, 'Juara 1') !== false) {
                     $position = 'Juara 1';
                 } elseif (stripos($achievement, 'Juara 2') !== false) {
@@ -404,7 +408,7 @@ class EventSeeder extends Seeder
                 } else {
                     $position = $achievement;
                 }
-                
+
                 // Create achievement
                 Achievement::create([
                     'eskul_id' => $eskul->id,
@@ -415,12 +419,12 @@ class EventSeeder extends Seeder
                     'level' => $level,
                     'position' => $position,
                 ]);
-                
+
                 // Also update the event to mark that it's finished and winners announced
                 $event = EskulEvent::where('title', $eventTitle)
                     ->where('eskul_id', $eskul->id)
                     ->first();
-                    
+
                 if ($event) {
                     $event->update([
                         'is_finished' => true,
@@ -429,17 +433,16 @@ class EventSeeder extends Seeder
                         'result_notes' => "Pengumuman pemenang telah dilakukan."
                     ]);
                 }
-                
+
                 $achievementsCreated++;
-                
             } catch (\Exception $e) {
                 $this->command->error("Error processing achievement: " . $e->getMessage());
                 $skipped++;
             }
-            
+
             $this->command->getOutput()->progressAdvance();
         }
-        
+
         $this->command->getOutput()->progressFinish();
         $this->command->info("Achievements created: $achievementsCreated, Skipped: $skipped");
     }

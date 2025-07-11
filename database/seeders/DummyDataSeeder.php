@@ -28,10 +28,8 @@ class DummyDataSeeder extends Seeder
         $namaPembimbing = [
             'Soeherman, S.Pd',
             'Indah Maisyarah Daulay, S.Pd',
-            'Handoko, S.S., M.A',
-            'Nur Hasna Azizah Hrp, S.Psi',
             'Drs. Parlaungan Hasibuan',
-            'Nurlatifah Harahap, M.Pd',
+            'Rommel Lumbangaol, S. Pd',
             'Muh. Nur Prabowo',
         ];
         foreach ($namaPembimbing as $index => $nama) {
@@ -49,10 +47,8 @@ class DummyDataSeeder extends Seeder
         $namaPelatih = [
             'Muhammad Ichsan Pranata, S.H',
             'M. Leo Hamzah Hutabarat',
-            'Syahruddin',
-            'Sri Astuti',
             'Haniful Sundana, S. Sos',
-            'Jamilah Harahap, S.E',
+            'Ramadhan Pratama',
             'Irfandi'
         ];
 
@@ -76,22 +72,10 @@ class DummyDataSeeder extends Seeder
                 'pembina' => 'Soeherman, S.Pd'
             ],
             [
-                'name' => 'PMR',
+                'name' => 'Palang Merah Remaja',
                 'description' => 'PMR (Palang Merah Remaja) adalah ekstrakurikuler yang mengajarkan keterampilan pertolongan pertama, kepedulian sosial, dan kesehatan.',
                 'pelatih' => 'M. Leo Hamzah Hutabarat',
                 'pembina' => 'Indah Maisyarah Daulay, S.Pd'
-            ],
-            [
-                'name' => 'Pramuka - Putra',
-                'description' => 'Pramuka adalah ekstrakurikuler yang membentuk karakter mandiri, disiplin, dan bertanggung jawab melalui kegiatan berkemah, keterampilan bertahan hidup, serta kerja sama tim.',
-                'pelatih' => 'Syahruddin',
-                'pembina' => 'Handoko, S.S., M.A'
-            ],
-            [
-                'name' => 'Pramuka - Putri',
-                'description' => 'Pramuka adalah ekstrakurikuler yang membentuk karakter mandiri, disiplin, dan bertanggung jawab melalui kegiatan berkemah, keterampilan bertahan hidup, serta kerja sama tim.',
-                'pelatih' => 'Sri Astuti',
-                'pembina' => 'Nur Hasna Azizah Hrp, S.Psi'
             ],
             [
                 'name' => 'Rohis',
@@ -100,10 +84,10 @@ class DummyDataSeeder extends Seeder
                 'pembina' => 'Drs. Parlaungan Hasibuan'
             ],
             [
-                'name' => 'Tahfizh',
-                'description' => 'Tahfizh adalah ekstrakurikuler yang berfokus pada menghafal, memahami, dan mengamalkan Al-Qur\'an dengan bimbingan metode yang terstruktur.',
-                'pelatih' => 'Jamilah Harahap, S.E',
-                'pembina' => 'Nurlatifah Harahap, M.Pd'
+                'name' => 'Futsal',
+                'description' => 'Futsal adalah ekstrakurikuler yang berfokus pada pengembangan keterampilan bermain, kerjasama tim, dan sportivitas melalui latihan dan pertandingan futsal.',
+                'pelatih' => 'Ramadhan Pratama',
+                'pembina' => 'Rommel Lumbangaol, S. Pd'
             ],
             [
                 'name' => 'Pencak Silat',
@@ -118,21 +102,21 @@ class DummyDataSeeder extends Seeder
             // Find the pelatih and pembina IDs
             $pelatihId = null;
             $pembinaId = null;
-            
+
             foreach ($pelatihs as $pelatih) {
                 if ($pelatih->name === $data['pelatih']) {
                     $pelatihId = $pelatih->id;
                     break;
                 }
             }
-            
+
             foreach ($pembinas as $pembina) {
                 if ($pembina->name === $data['pembina']) {
                     $pembinaId = $pembina->id;
                     break;
                 }
             }
-            
+
             $eskul = Eskul::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
@@ -156,15 +140,15 @@ class DummyDataSeeder extends Seeder
             echo "File CSV siswa tidak ditemukan: $filePathSiswa\n";
             return;
         }
-        
+
         $csvSiswa = Reader::createFromPath($filePathSiswa, 'r');
         $csvSiswa->setDelimiter(','); // Changed from semicolon to comma
         $csvSiswa->setHeaderOffset(0);
-        
+
         $batchSize = 1000;
         $dataBatch = [];
         $i = 1;
-        
+
         foreach ($csvSiswa as $record) {
             $student = User::create([
                 'name' => $record['nama'],
@@ -175,4 +159,4 @@ class DummyDataSeeder extends Seeder
             $i++;
         }
     }
-} 
+}
