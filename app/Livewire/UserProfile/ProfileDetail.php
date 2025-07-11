@@ -58,7 +58,7 @@ class ProfileDetail extends Component implements HasForms
             TextInput::make('phone')
                 ->label('No. Telepon')
                 ->numeric()
-                ->default($this->user->detail?->phone ?? ''),
+                ->default($this->user->detail?->phone ?? '081234567890'),
         ];
 
         // Jika user yang dilihat adalah siswa, tampilkan form lengkap
@@ -69,20 +69,20 @@ class ProfileDetail extends Component implements HasForms
                         ->schema([
                             Grid::make(2)->schema([
                                 ...$basicFields,
-                                TextInput::make('nis')
-                                    ->label('NIS')
-                                    ->numeric()
-                                    ->placeholder('Cth : 1234567890')
-                                    ->maxLength(50)
-                                    ->default($this->user->detail?->nis ?? ''),
-                                TextInput::make('nisn')
-                                    ->label('NISN')
-                                    ->numeric()
-                                    ->placeholder('Cth : 1234567890')
-                                    ->maxLength(50)
-                                    ->default($this->user->detail?->nisn ?? ''),
+                                // TextInput::make('nis')
+                                //     ->label('NIS')
+                                //     ->numeric()
+                                //     ->placeholder('Cth : 1234567890')
+                                //     ->maxLength(50)
+                                //     ->default($this->user->detail?->nis ?? ''),
+                                // TextInput::make('nisn')
+                                //     ->label('NISN')
+                                //     ->numeric()
+                                //     ->placeholder('Cth : 1234567890')
+                                //     ->maxLength(50)
+                                //     ->default($this->user->detail?->nisn ?? ''),
                                 Select::make('gender')
-                                    ->default($this->user->detail?->gender ?? '')
+                                    ->default($this->user->detail?->gender ?? 'L')
                                     ->label('Jenis Kelamin')
                                     ->options([
                                         'L' => 'Laki-laki',
@@ -94,15 +94,15 @@ class ProfileDetail extends Component implements HasForms
                                     ->maxLength(255)
                                     ->placeholder('Cth : Jakarta, Bandung, dll')
                                     ->required()
-                                    ->default($this->user->detail?->birth_place ?? ''),
+                                    ->default($this->user->detail?->birth_place ?? 'Jakarta'),
                                 DatePicker::make('birth_date')
                                     ->label('Tanggal Lahir')
                                     ->format('d/m/Y')
                                     ->required()
-                                    ->default($this->user->detail?->birth_date ?? ''),
+                                    ->default($this->user->detail?->birth_date ?? '1990-01-01'),
                                 Select::make('religion')
                                     ->label('Agama')
-                                    ->default($this->user->detail?->religion ?? '')
+                                    ->default($this->user->detail?->religion ?? 'Kristen')
                                     ->required()
                                     ->options([
                                         'Islam' => 'Islam',
@@ -116,7 +116,7 @@ class ProfileDetail extends Component implements HasForms
                                     ->label('Alamat')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Jl. Raya, No. 123, Kel. Sukajadi, Kec. Bandung Barat, Kota Bandung, Jawa Barat 40115')
-                                    ->default($this->user->detail?->address ?? '')
+                                    ->default($this->user->detail?->address ?? 'Jl. Raya, No. 123, Kel. Sukajadi, Kec. Bandung Barat, Kota Bandung, Jawa Barat 40115')
                                     ->columnSpanFull()
                                     ->required(),
                             ]),
@@ -127,15 +127,15 @@ class ProfileDetail extends Component implements HasForms
                             Grid::make(2)->schema([
                                 TextInput::make('class')
                                     ->label('Kelas')
-                                    ->maxLength(10)
+                                    ->maxLength(30)
                                     ->placeholder('Cth : XII RPL 1')
-                                    ->default($this->user->detail?->class ?? '')
+                                    ->default($this->user->detail?->class ?? 'XII RPL 1')
                                     ->required(),
                                 TextInput::make('academic_year')
                                     ->label('Tahun Akademik')
                                     ->maxLength(20)
                                     ->placeholder('Cth : 2024/2025')
-                                    ->default($this->user->detail?->academic_year ?? '')
+                                    ->default($this->user->detail?->academic_year ?? '2024/2025')
                                     ->required(),
                             ]),
                         ]),
@@ -160,46 +160,46 @@ class ProfileDetail extends Component implements HasForms
                                     ->label('Nama Ayah')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Nama ayah kandung')
-                                    ->default($this->user->detail?->father_name ?? '')
+                                    ->default($this->user->detail?->father_name ?? 'Ayah')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('father_occupation')
                                     ->label('Pekerjaan Ayah')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Karyawan, Wiraswasta, dll')
-                                    ->default($this->user->detail?->father_occupation ?? '')
+                                    ->default($this->user->detail?->father_occupation ?? 'Swasta')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('father_phone')
                                     ->label('No. Telepon Ayah')
                                     ->numeric()
                                     ->maxLength(15)
                                     ->placeholder('Cth : 081234567890')
-                                    ->default($this->user->detail?->father_phone ?? '')
+                                    ->default($this->user->detail?->father_phone ?? '081234567890')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('mother_name')
                                     ->label('Nama Ibu')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Nama ibu kandung')
-                                    ->default($this->user->detail?->mother_name ?? '')
+                                    ->default($this->user->detail?->mother_name ?? 'Ibu')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('mother_occupation')
                                     ->label('Pekerjaan Ibu')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Karyawan, Wiraswasta, dll')
-                                    ->default($this->user->detail?->mother_occupation ?? '')
+                                    ->default($this->user->detail?->mother_occupation ?? 'Swasta')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('mother_phone')
                                     ->label('No. Telepon Ibu')
                                     ->numeric()
                                     ->maxLength(15)
                                     ->placeholder('Cth : 081234567890')
-                                    ->default($this->user->detail?->mother_phone ?? '')
+                                    ->default($this->user->detail?->mother_phone ?? '081234567890')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                                 TextInput::make('parent_email')
                                     ->label('Email Orang Tua')
                                     ->email()
                                     ->maxLength(255)
                                     ->placeholder('Email ayah atau ibu')
-                                    ->default($this->user->detail?->parent_email ?? '')
+                                    ->default($this->user->detail?->parent_email ?? 'ayah@gmail.com')
                                     ->required(fn (callable $get) => $get('living_with') === 'parents'),
                             ]),
                         ])
@@ -211,33 +211,33 @@ class ProfileDetail extends Component implements HasForms
                                 TextInput::make('guardian_name')
                                     ->label('Nama Wali')
                                     ->maxLength(255)
-                                    ->default($this->user->detail?->guardian_name ?? '')
+                                    ->default($this->user->detail?->guardian_name ?? 'Wali')
                                     ->required(fn (callable $get) => $get('living_with') === 'guardian'),
                                 TextInput::make('guardian_occupation')
                                     ->label('Pekerjaan Wali')
                                     ->maxLength(255)
-                                    ->default($this->user->detail?->guardian_occupation ?? '')
+                                    ->default($this->user->detail?->guardian_occupation ?? 'Swasta')
                                     ->required(fn (callable $get) => $get('living_with') === 'guardian'),
                                 TextInput::make('guardian_phone')
                                     ->label('No. Telepon Wali')
                                     ->numeric()
                                     ->maxLength(15)
-                                    ->default($this->user->detail?->guardian_phone ?? '')
+                                    ->default($this->user->detail?->guardian_phone ?? '081234567890')
                                     ->required(fn (callable $get) => $get('living_with') === 'guardian'),
                                 TextInput::make('guardian_relation')
                                     ->label('Hubungan dengan Siswa')
                                     ->maxLength(255)
-                                    ->default($this->user->detail?->guardian_relation ?? '')
+                                    ->default($this->user->detail?->guardian_relation ?? 'Wali')
                                     ->required(fn (callable $get) => $get('living_with') === 'guardian'),
                                 TextInput::make('guardian_email')
                                     ->label('Email Wali')
                                     ->email()
                                     ->maxLength(255)
-                                    ->default($this->user->detail?->guardian_email ?? '')
+                                    ->default($this->user->detail?->guardian_email ?? 'wali@gmail.com')
                                     ->required(fn (callable $get) => $get('living_with') === 'guardian'),
                             ]),
                         ])
-                        ->hidden(fn (callable $get) => $get('living_with') === 'parents'),
+                        ->hidden(fn (callable $get) => $get('living_with') === 'parents'),  
 
                     Section::make('Informasi Tambahan')
                         ->schema([
@@ -246,17 +246,17 @@ class ProfileDetail extends Component implements HasForms
                                     ->label('Riwayat Kesehatan')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Riwayat penyakit, alergi, dll jika tidak ada tidak perlu diisi')
-                                    ->default($this->user->detail?->medical_history ?? ''),
+                                    ->default($this->user->detail?->medical_history ?? 'Tidak ada riwayat kesehatan'),
                                 Textarea::make('special_needs')
                                     ->label('Kebutuhan Khusus')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Kebutuhan khusus, keterangan, dll jika tidak ada tidak perlu diisi')
-                                    ->default($this->user->detail?->special_needs ?? ''),
+                                    ->default($this->user->detail?->special_needs ?? 'Tidak ada kebutuhan khusus'),
                                 Textarea::make('notes')
                                     ->label('Catatan Tambahan')
                                     ->maxLength(255)
                                     ->placeholder('Cth : Catatan tambahan, keterangan, dll jika tidak ada tidak perlu diisi')
-                                    ->default($this->user->detail?->notes ?? ''),
+                                    ->default($this->user->detail?->notes ?? 'Tidak ada catatan tambahan'),
                             ]),
                         ]),
                 ])
