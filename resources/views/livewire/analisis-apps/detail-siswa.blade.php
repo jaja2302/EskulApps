@@ -16,7 +16,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Akademik</label>
                     <select wire:model="selectedYear" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         @foreach($academicYears as $year)
-                            <option value="{{ $year }}">{{ $year }}</option>
+                        <option value="{{ $year }}">{{ $year }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -47,7 +47,7 @@
                     <select wire:model="selectedClass" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Semua Kelas</option>
                         @foreach($classes as $class)
-                            <option value="{{ $class }}">{{ $class }}</option>
+                        <option value="{{ $class }}">{{ $class }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -58,7 +58,7 @@
                     <select wire:model="selectedEskul" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Semua Eskul</option>
                         @foreach($eskuls as $id => $name)
-                            <option value="{{ $id }}">{{ $name }}</option>
+                        <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -77,8 +77,8 @@
 
             <!-- Action Buttons -->
             <div class="flex flex-wrap gap-4 mt-6">
-                <button wire:click="analyze" 
-                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
+                <button wire:click="analyze"
+                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200">
                     <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
@@ -86,16 +86,16 @@
                 </button>
 
                 @if($results)
-                <button wire:click="toggleAwards" 
-                        class="px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition duration-200">
+                <button wire:click="toggleAwards"
+                    class="px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition duration-200">
                     <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                     {{ $showAwards ? 'Sembunyikan' : 'Tampilkan' }} Penghargaan
                 </button>
 
-                <button wire:click="exportResults" 
-                        class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200">
+                <button wire:click="exportResults"
+                    class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200">
                     <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -107,9 +107,9 @@
 
         <!-- Flash Messages -->
         @if (session()->has('message'))
-            <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6" role="alert">
-                {{ session('message') }}
-            </div>
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6" role="alert">
+            {{ session('message') }}
+        </div>
         @endif
 
         <!-- Awards Section -->
@@ -117,11 +117,11 @@
         <div class="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg shadow-sm p-6 mb-6 border border-yellow-200">
             <h2 class="text-xl font-bold text-amber-800 mb-4 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 🏆 Penghargaan Siswa Teraktif
             </h2>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($topPerformers as $performer)
                 <div class="bg-white rounded-lg p-4 shadow-sm border border-yellow-300">
@@ -179,7 +179,7 @@
                     <h2 class="text-xl font-semibold text-gray-900">Data Siswa</h2>
                     <p class="text-sm text-gray-600 mt-1">Total: {{ count($studentMetrics) }} siswa</p>
                 </div>
-                
+
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -234,16 +234,16 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @php
-                                        $clusterColors = [
-                                            0 => 'bg-green-100 text-green-800',
-                                            1 => 'bg-yellow-100 text-yellow-800',
-                                            2 => 'bg-red-100 text-red-800'
-                                        ];
-                                        $clusterLabels = [
-                                            0 => 'Sangat Aktif',
-                                            1 => 'Cukup Aktif',
-                                            2 => 'Perlu Motivasi'
-                                        ];
+                                    $clusterColors = [
+                                    0 => 'bg-green-100 text-green-800',
+                                    1 => 'bg-yellow-100 text-yellow-800',
+                                    2 => 'bg-red-100 text-red-800'
+                                    ];
+                                    $clusterLabels = [
+                                    0 => 'Sangat Aktif',
+                                    1 => 'Cukup Aktif',
+                                    2 => 'Perlu Motivasi'
+                                    ];
                                     @endphp
                                     <span class="px-2 py-1 text-xs font-medium rounded-full {{ $clusterColors[$metric->cluster] ?? 'bg-gray-100 text-gray-800' }}">
                                         {{ $clusterLabels[$metric->cluster] ?? 'Unknown' }}

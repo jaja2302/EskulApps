@@ -22,28 +22,28 @@ class AttendanceAndMemberSeeder extends Seeder
     public function run()
     {
         $this->command->info('Starting attendance and member import...');
-        
+
         $totalAttendanceCreated = 0;
         $totalMembersCreated = 0;
         $totalSkipped = 0;
 
-        $bookNumberTotal = 7;    
+        $bookNumberTotal = 4;
 
         // Process buku1.xlsx to buku7.xlsx
         for ($bookNumber = 1; $bookNumber <= $bookNumberTotal; $bookNumber++) {
             $path = storage_path("app/buku{$bookNumber}.xlsx");
-            
+
             if (!file_exists($path)) {
                 $this->command->warn("File buku{$bookNumber}.xlsx tidak ditemukan, melanjutkan ke file berikutnya...");
                 continue;
             }
 
             $this->command->info("Memproses buku{$bookNumber}.xlsx...");
-            
+
             $spreadsheet = IOFactory::load($path);
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
-            
+
             // Skip header row
             array_shift($rows);
 
@@ -55,8 +55,7 @@ class AttendanceAndMemberSeeder extends Seeder
             foreach ($rows as $row) {
                 try {
                     // Log current row being processed
-                    Log::info("ATTENDANCE_SEEDER: Processing row {$rowNumber} in buku{$bookNumber}.xlsx");
-                    
+
                     // Check if row has enough columns
                     if (count($row) < 4) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Not enough columns. Expected 4, got " . count($row), [
@@ -69,13 +68,13 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     // Get data from columns with null checks
                     $studentName = $row[0] ?? null;
                     $eskulName = $row[1] ?? null;
                     $dateString = $row[2] ?? null;
                     $status = $row[3] ?? null;
-                    
+
                     // Log raw data
                     Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} data", [
                         'file' => "buku{$bookNumber}.xlsx",
@@ -85,7 +84,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         'date' => $dateString,
                         'status' => $status
                     ]);
-                    
+
                     // Validate required fields
                     if (empty($studentName)) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Student name is empty", [
@@ -97,7 +96,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     if (empty($eskulName)) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Eskul name is empty", [
                             'file' => "buku{$bookNumber}.xlsx",
@@ -108,7 +107,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     if (empty($dateString)) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Date is empty", [
                             'file' => "buku{$bookNumber}.xlsx",
@@ -119,7 +118,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     if (empty($status)) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Status is empty", [
                             'file' => "buku{$bookNumber}.xlsx",
@@ -130,7 +129,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     // Try to parse date with better error handling
                     try {
                         $date = Carbon::createFromFormat('d/m/Y', $dateString)->format('Y-m-d');
@@ -148,11 +147,11 @@ class AttendanceAndMemberSeeder extends Seeder
                             'error' => $dateError->getMessage(),
                             'raw_data' => $row
                         ]);
-                        
+
                         // Try alternative date formats
                         $alternativeFormats = ['Y-m-d', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
                         $dateParsed = false;
-                        
+
                         foreach ($alternativeFormats as $format) {
                             try {
                                 $date = Carbon::createFromFormat($format, $dateString)->format('Y-m-d');
@@ -169,7 +168,7 @@ class AttendanceAndMemberSeeder extends Seeder
                                 // Continue to next format
                             }
                         }
-                        
+
                         if (!$dateParsed) {
                             Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Could not parse date with any format", [
                                 'file' => "buku{$bookNumber}.xlsx",
@@ -183,9 +182,9 @@ class AttendanceAndMemberSeeder extends Seeder
                             continue;
                         }
                     }
-                    
+
                     $status = strtolower($status);
-                    
+
                     // Convert 'tidak hadir' to 'alpha'
                     if ($status === 'tidak hadir') {
                         $status = 'alpha';
@@ -193,10 +192,10 @@ class AttendanceAndMemberSeeder extends Seeder
 
                     // Find student and eskul
                     $student = User::where('name', $studentName)
-                        ->whereHas('roles', function($q) {
+                        ->whereHas('roles', function ($q) {
                             $q->where('name', 'siswa');
                         })->first();
-                    
+
                     $eskul = Eskul::where('name', $eskulName)->first();
 
                     if (!$student) {
@@ -210,7 +209,7 @@ class AttendanceAndMemberSeeder extends Seeder
                         $rowNumber++;
                         continue;
                     }
-                    
+
                     if (!$eskul) {
                         Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Eskul not found", [
                             'file' => "buku{$bookNumber}.xlsx",
@@ -297,7 +296,6 @@ class AttendanceAndMemberSeeder extends Seeder
                         'date' => $date,
                         'status' => $status
                     ]);
-
                 } catch (\Exception $e) {
                     Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Unexpected error", [
                         'file' => "buku{$bookNumber}.xlsx",
@@ -310,7 +308,7 @@ class AttendanceAndMemberSeeder extends Seeder
                     ]);
                     $skipped++;
                 }
-                
+
                 $rowNumber++;
             }
 
