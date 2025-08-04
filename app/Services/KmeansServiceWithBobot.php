@@ -138,7 +138,7 @@ class KmeansServiceWithBobot
             ->where('semester', $this->semester);
             
         // Add month filter if we're filtering by month
-        if (isset($this->month) && $this->month) {
+        if (isset($this->month) && $this->month && $this->month !== '') {
             $query->where('month', $this->month);
         }
         

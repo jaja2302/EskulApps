@@ -40,7 +40,7 @@ class DetailSiswa extends Component
         
         $this->selectedYear = date('Y');
         $this->selectedSemester = (date('n') > 6) ? 1 : 2;
-        $this->selectedMonth = date('n'); // Current month
+        $this->selectedMonth = ''; // Default to all months
         
         // Get list of academic years
         $this->academicYears = range(date('Y')-2, date('Y'));
@@ -205,7 +205,7 @@ class DetailSiswa extends Component
             ->where('student_performance_metrics.semester', $this->selectedSemester);
             
         // Add month filter if selected
-        if ($this->selectedMonth) {
+        if ($this->selectedMonth && $this->selectedMonth !== '') {
             $query->where('student_performance_metrics.month', $this->selectedMonth);
         }
         
