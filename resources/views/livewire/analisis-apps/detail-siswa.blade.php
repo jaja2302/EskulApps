@@ -10,7 +10,7 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Filter Analisis</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <!-- Tahun Akademik -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Akademik</label>
@@ -27,6 +27,17 @@
                     <select wire:model="selectedSemester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="1">Semester 1</option>
                         <option value="2">Semester 2</option>
+                    </select>
+                </div>
+
+                <!-- Bulan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
+                    <select wire:model="selectedMonth" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Semua Bulan</option>
+                        @foreach($months as $value => $name)
+                            <option value="{{ $value }}">{{ $name }}</option>
+                        @endforeach
                     </select>
                 </div>
 

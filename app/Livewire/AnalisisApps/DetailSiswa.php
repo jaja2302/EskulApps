@@ -14,6 +14,7 @@ class DetailSiswa extends Component
 {
     public $selectedYear;
     public $selectedSemester;
+    public $selectedMonth = '';
     public $selectedClass = '';
     public $selectedEskul = '';
     public $selectedCluster = '';
@@ -23,6 +24,7 @@ class DetailSiswa extends Component
     public $academicYears = [];
     public $classes = [];
     public $eskuls = [];
+    public $months = [];
     
     // Properties untuk awards/penghargaan
     public $topPerformers = [];
@@ -38,9 +40,26 @@ class DetailSiswa extends Component
         
         $this->selectedYear = date('Y');
         $this->selectedSemester = (date('n') > 6) ? 1 : 2;
+        $this->selectedMonth = date('n'); // Current month
         
         // Get list of academic years
         $this->academicYears = range(date('Y')-2, date('Y'));
+        
+        // Get available months
+        $this->months = [
+            1 => 'Januari',
+            2 => 'Februari', 
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember'
+        ];
         
         // Get available classes
         $this->loadClasses();
@@ -99,7 +118,8 @@ class DetailSiswa extends Component
                 $member->student_id, 
                 $member->eskul_id,
                 $this->selectedYear,
-                $this->selectedSemester
+                $this->selectedSemester,
+                $this->selectedMonth
             );
             
             // Store or update metrics
@@ -109,7 +129,8 @@ class DetailSiswa extends Component
                         'student_id' => $member->student_id,
                         'eskul_id' => $member->eskul_id,
                         'year' => $this->selectedYear,
-                        'semester' => $this->selectedSemester
+                        'semester' => $this->selectedSemester,
+                        'month' => $this->selectedMonth
                     ],
                     [
                         'attendance_score' => $metrics['raw_attendance_score'],
@@ -165,6 +186,15 @@ class DetailSiswa extends Component
         }
     }
 
+    public function updatedSelectedMonth()
+    {
+        if ($this->results) {
+            $this->loadResults();
+            $this->calculateClusterStats();
+            $this->generateAwards();
+        }
+    }
+
     private function loadResults()
     {
         $query = DB::table('student_performance_metrics')
@@ -172,14 +202,20 @@ class DetailSiswa extends Component
             ->join('user_details', 'user_details.user_id', '=', 'users.id')
             ->join('eskuls', 'eskuls.id', '=', 'student_performance_metrics.eskul_id')
             ->where('student_performance_metrics.year', $this->selectedYear)
-            ->where('student_performance_metrics.semester', $this->selectedSemester)
-            ->select(
-                'users.name as student_name',
-                'user_details.class',
-                'user_details.nis',
-                'eskuls.name as eskul_name',
-                'student_performance_metrics.*'
-            );
+            ->where('student_performance_metrics.semester', $this->selectedSemester);
+            
+        // Add month filter if selected
+        if ($this->selectedMonth) {
+            $query->where('student_performance_metrics.month', $this->selectedMonth);
+        }
+        
+        $query->select(
+            'users.name as student_name',
+            'user_details.class',
+            'user_details.nis',
+            'eskuls.name as eskul_name',
+            'student_performance_metrics.*'
+        );
             
         // Apply filters
         if ($this->selectedEskul) {

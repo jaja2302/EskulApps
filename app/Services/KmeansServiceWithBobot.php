@@ -17,6 +17,7 @@ class KmeansServiceWithBobot
     private $endDate;
     private $year;
     private $semester;
+    private $month;
     
     // Definisi bobot untuk setiap metrik
     private $weights = [
@@ -25,9 +26,9 @@ class KmeansServiceWithBobot
         'achievement' => 0.3    // Prestasi 30%
     ];
 
-    public function calculateMetrics($studentId, $eskulId, $year, $semester)
+    public function calculateMetrics($studentId, $eskulId, $year, $semester, $month = null)
     {
-        $this->setPeriod($year, $semester);
+        $this->setPeriod($year, $semester, $month);
         
         $attendanceScore = $this->calculateAttendanceScore($studentId, $eskulId);
         $participationScore = $this->calculateParticipationScore($studentId, $eskulId);
@@ -46,17 +47,25 @@ class KmeansServiceWithBobot
         return $weightedScores;
     }
 
-    private function setPeriod($year, $semester)
+    private function setPeriod($year, $semester, $month = null)
     {
-        if ($semester == 1) {
-            $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
-            $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
+        if ($month) {
+            // If month is specified, use that specific month
+            $this->startDate = Carbon::create($year, $month, 1)->startOfDay();
+            $this->endDate = Carbon::create($year, $month, 1)->endOfMonth()->endOfDay();
         } else {
-            $this->startDate = Carbon::create($year, 1, 1)->startOfDay();
-            $this->endDate = Carbon::create($year, 6, 30)->endOfDay();
+            // Use semester-based filtering as before
+            if ($semester == 1) {
+                $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
+                $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
+            } else {
+                $this->startDate = Carbon::create($year, 1, 1)->startOfDay();
+                $this->endDate = Carbon::create($year, 6, 30)->endOfDay();
+            }
         }
         $this->year = $year;
         $this->semester = $semester;
+        $this->month = $month;
     }
 
     // Fungsi perhitungan skor sama seperti sebelumnya
@@ -123,11 +132,17 @@ class KmeansServiceWithBobot
 
     public function performClustering($eskulId)
     {
-        $students = \DB::table('student_performance_metrics')
+        $query = \DB::table('student_performance_metrics')
             ->where('eskul_id', $eskulId)
             ->where('year', $this->year)
-            ->where('semester', $this->semester)
-            ->get();
+            ->where('semester', $this->semester);
+            
+        // Add month filter if we're filtering by month
+        if (isset($this->month) && $this->month) {
+            $query->where('month', $this->month);
+        }
+        
+        $students = $query->get();
             
         // Inisialisasi centroid dengan strategi yang lebih baik
         $centroids = [
