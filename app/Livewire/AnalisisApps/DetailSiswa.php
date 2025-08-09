@@ -127,14 +127,14 @@ class DetailSiswa extends Component
             );
             
             // Store or update metrics
-            DB::table('student_performance_metrics')
+                DB::table('student_performance_metrics')
                 ->updateOrInsert(
                     [
                         'student_id' => $member->student_id,
                         'eskul_id' => $member->eskul_id,
                         'year' => $this->selectedYear,
                         'semester' => $this->selectedSemester,
-                        'month' => $this->selectedMonth
+                            'month' => $this->selectedMonth !== '' ? $this->selectedMonth : null
                     ],
                     [
                         'attendance_score' => $metrics['attendance_score'],
@@ -144,11 +144,12 @@ class DetailSiswa extends Component
                 );
         }
         
-        // Perform clustering untuk setiap eskul yang terlibat
+        // Perform clustering untuk setiap eskul yang terlibat, HANYA untuk siswa sesuai filter
         $eskulIds = $students->pluck('eskul_id')->unique();
         foreach ($eskulIds as $eskulId) {
-            $kmeansService->performClustering($eskulId);
-            // Simpan informasi debug per eskul untuk ditampilkan di UI
+            $studentIdsForEskul = $students->where('eskul_id', $eskulId)->pluck('student_id')->values()->all();
+            $kmeansService->performClustering($eskulId, $studentIdsForEskul);
+            // Simpan informasi debug per eskul untuk ditampilkan di UI, tetap sesuai filter
             $this->kmeansDebug[$eskulId] = $kmeansService->getDebugInfo();
         }
         
@@ -231,9 +232,11 @@ class DetailSiswa extends Component
             ->where('student_performance_metrics.year', $this->selectedYear)
             ->where('student_performance_metrics.semester', $this->selectedSemester);
             
-        // Add month filter if selected
+        // Add month filter if selected; otherwise gunakan agregat semester (month NULL)
         if ($this->selectedMonth && $this->selectedMonth !== '') {
             $query->where('student_performance_metrics.month', $this->selectedMonth);
+        } else {
+            $query->whereNull('student_performance_metrics.month');
         }
         
         $query->select(
@@ -301,7 +304,21 @@ class DetailSiswa extends Component
             $query->where('student_performance_metrics.cluster', $this->selectedCluster);
         }
         
-        $this->studentMetrics = $query->orderBy('user_details.class')
+        // Hindari duplikasi baris (mis. kombinasi student_id + eskul_id ganda karena month NULL vs "")
+        $this->studentMetrics = $query->select(
+                'users.name as student_name',
+                'user_details.class',
+                'user_details.nis',
+                'eskuls.name as eskul_name',
+                'student_performance_metrics.student_id',
+                'student_performance_metrics.eskul_id',
+                DB::raw('MAX(student_performance_metrics.attendance_score) as attendance_score'),
+                DB::raw('MAX(student_performance_metrics.participation_score) as participation_score'),
+                DB::raw('MAX(student_performance_metrics.achievement_score) as achievement_score'),
+                DB::raw('MAX(student_performance_metrics.cluster) as cluster')
+            )
+            ->groupBy('student_performance_metrics.student_id', 'student_performance_metrics.eskul_id', 'users.name', 'user_details.class', 'user_details.nis', 'eskuls.name')
+            ->orderBy('user_details.class')
             ->orderBy('users.name')
             ->get();
     }

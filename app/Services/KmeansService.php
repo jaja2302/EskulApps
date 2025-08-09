@@ -114,7 +114,7 @@ class KmeansService
             ->count();
     }
     
-    public function performClustering($eskulId)
+    public function performClustering($eskulId, $filteredStudentIds = null)
     {
         // Ambil semua data metrik siswa untuk tahun dan semester yang aktif beserta nama siswa
         $query = \DB::table('student_performance_metrics')
@@ -127,11 +127,18 @@ class KmeansService
                 'users.name as student_name'
             );
         
-        // Jika ada filter bulan, batasi pada bulan tersebut
+        // Jika ada filter bulan, batasi pada bulan tersebut; jika tidak, gunakan baris agregat semester (month NULL)
         if ($this->month !== null && $this->month !== '') {
             $query->where('month', $this->month);
+        } else {
+            $query->whereNull('month');
         }
         
+        // Jika diberikan filter daftar siswa, batasi pada siswa tersebut
+        if (is_array($filteredStudentIds) && count($filteredStudentIds) > 0) {
+            $query->whereIn('student_performance_metrics.student_id', $filteredStudentIds);
+        }
+
         $students = $query->get();
         
         // Persiapkan data points
