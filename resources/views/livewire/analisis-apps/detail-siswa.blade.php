@@ -201,7 +201,26 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $metric->student_name }}</div>
+                                    <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                        {{ $metric->student_name }}
+                                        <span class="relative group">
+                                            <button type="button" class="text-blue-600 text-xs underline">Detail</button>
+                                            <div class="hidden group-hover:block absolute z-10 left-0 mt-1 w-72 p-3 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
+                                                <div class="font-semibold mb-1">Rincian Perhitungan</div>
+                                                <div>
+                                                    Kehadiran = (Hadir / Total Pertemuan) × 100%<br>
+                                                    = ({{ $metric->att_present ?? 0 }} / {{ $metric->att_total ?? 0 }}) × 100%
+                                                </div>
+                                                <div class="mt-2">
+                                                    Partisipasi = (Ikut Event / Total Event) × 100%<br>
+                                                    = ({{ $metric->ev_participated ?? 0 }} / {{ $metric->ev_total ?? 0 }}) × 100%
+                                                </div>
+                                                <div class="mt-2">
+                                                    Prestasi dihitung dari rata-rata skor tiap prestasi (level & posisi). Jumlah prestasi periode ini: {{ $metric->ach_count ?? 0 }}
+                                                </div>
+                                            </div>
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $metric->nis }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap">

@@ -9,6 +9,7 @@ use App\Models\Eskul;
 use App\Models\User;
 use App\Models\UserDetail;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DetailSiswa extends Component
 {
@@ -195,8 +196,29 @@ class DetailSiswa extends Component
         }
     }
 
+    private function getPeriodRange(): array
+    {
+        if ($this->selectedMonth && $this->selectedMonth !== '') {
+            $start = Carbon::create($this->selectedYear, (int) $this->selectedMonth, 1)->startOfDay();
+            $end = Carbon::create($this->selectedYear, (int) $this->selectedMonth, 1)->endOfMonth()->endOfDay();
+        } else {
+            if ((int) $this->selectedSemester === 1) {
+                $start = Carbon::create($this->selectedYear, 7, 1)->startOfDay();
+                $end = Carbon::create($this->selectedYear, 12, 31)->endOfDay();
+            } else {
+                $start = Carbon::create($this->selectedYear, 1, 1)->startOfDay();
+                $end = Carbon::create($this->selectedYear, 6, 30)->endOfDay();
+            }
+        }
+        return ['start' => $start, 'end' => $end];
+    }
+
     private function loadResults()
     {
+        $period = $this->getPeriodRange();
+        $start = $period['start'];
+        $end = $period['end'];
+
         $query = DB::table('student_performance_metrics')
             ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
             ->join('user_details', 'user_details.user_id', '=', 'users.id')
@@ -216,6 +238,50 @@ class DetailSiswa extends Component
             'eskuls.name as eskul_name',
             'student_performance_metrics.*'
         );
+
+        // Breakdown subqueries: attendance
+        $query->selectSub(function($q) use ($start, $end) {
+            $q->from('attendances as a')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('a.eskul_id', 'student_performance_metrics.eskul_id')
+                ->whereBetween('a.date', [$start, $end]);
+        }, 'att_total');
+
+        $query->selectSub(function($q) use ($start, $end) {
+            $q->from('attendances as a')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('a.eskul_id', 'student_performance_metrics.eskul_id')
+                ->whereColumn('a.student_id', 'student_performance_metrics.student_id')
+                ->where('a.status', 'hadir')
+                ->where('a.is_verified', 1)
+                ->whereBetween('a.date', [$start, $end]);
+        }, 'att_present');
+
+        // Events breakdown
+        $query->selectSub(function($q) use ($start, $end) {
+            $q->from('eskul_events as e')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('e.eskul_id', 'student_performance_metrics.eskul_id')
+                ->whereBetween('e.start_datetime', [$start, $end]);
+        }, 'ev_total');
+
+        $query->selectSub(function($q) use ($start, $end) {
+            $q->from('eskul_event_participants as p')
+                ->join('eskul_events as e', 'e.id', '=', 'p.event_id')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('e.eskul_id', 'student_performance_metrics.eskul_id')
+                ->whereColumn('p.student_id', 'student_performance_metrics.student_id')
+                ->whereBetween('e.start_datetime', [$start, $end]);
+        }, 'ev_participated');
+
+        // Achievements breakdown
+        $query->selectSub(function($q) use ($start, $end) {
+            $q->from('achievements as ac')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('ac.eskul_id', 'student_performance_metrics.eskul_id')
+                ->whereColumn('ac.student_id', 'student_performance_metrics.student_id')
+                ->whereBetween('ac.achievement_date', [$start, $end]);
+        }, 'ach_count');
             
         // Apply filters
         if ($this->selectedEskul) {
