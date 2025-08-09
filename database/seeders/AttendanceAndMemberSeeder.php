@@ -132,55 +132,25 @@ class AttendanceAndMemberSeeder extends Seeder
 
                     // Try to parse date with better error handling
                     try {
-                        $date = Carbon::createFromFormat('d/m/Y', $dateString)->format('Y-m-d');
-                        Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} date parsed successfully", [
+                        [$date, $formatUsed] = $this->parseDateStrict($dateString);
+                        Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} date parsed strictly", [
                             'file' => "buku{$bookNumber}.xlsx",
                             'row' => $rowNumber,
+                            'format_used' => $formatUsed,
                             'original_date' => $dateString,
                             'parsed_date' => $date
                         ]);
-                    } catch (\Exception $dateError) {
-                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Failed to parse date", [
+                    } catch (\Throwable $dateError) {
+                        Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Failed strict date parse", [
                             'file' => "buku{$bookNumber}.xlsx",
                             'row' => $rowNumber,
                             'date_string' => $dateString,
                             'error' => $dateError->getMessage(),
                             'raw_data' => $row
                         ]);
-
-                        // Try alternative date formats
-                        $alternativeFormats = ['Y-m-d', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
-                        $dateParsed = false;
-
-                        foreach ($alternativeFormats as $format) {
-                            try {
-                                $date = Carbon::createFromFormat($format, $dateString)->format('Y-m-d');
-                                Log::info("ATTENDANCE_SEEDER: Row {$rowNumber} date parsed with alternative format", [
-                                    'file' => "buku{$bookNumber}.xlsx",
-                                    'row' => $rowNumber,
-                                    'format_used' => $format,
-                                    'original_date' => $dateString,
-                                    'parsed_date' => $date
-                                ]);
-                                $dateParsed = true;
-                                break;
-                            } catch (\Exception $e) {
-                                // Continue to next format
-                            }
-                        }
-
-                        if (!$dateParsed) {
-                            Log::error("ATTENDANCE_SEEDER: Row {$rowNumber} in buku{$bookNumber}.xlsx - Could not parse date with any format", [
-                                'file' => "buku{$bookNumber}.xlsx",
-                                'row' => $rowNumber,
-                                'date_string' => $dateString,
-                                'tried_formats' => $alternativeFormats,
-                                'raw_data' => $row
-                            ]);
-                            $skipped++;
-                            $rowNumber++;
-                            continue;
-                        }
+                        $skipped++;
+                        $rowNumber++;
+                        continue;
                     }
 
                     $status = strtolower($status);
@@ -271,6 +241,20 @@ class AttendanceAndMemberSeeder extends Seeder
                     }
 
                     // Create attendance record with schedule_id and check_in_time
+                    // Warn if the parsed date year is not 2025 before inserting/updating
+                    $parsedYear = Carbon::parse($date)->year;
+                    if ($parsedYear !== 2025) {
+                        Log::warning("ATTENDANCE_SEEDER: Row {$rowNumber} Non-2025 date detected before insert/update", [
+                            'file' => "buku{$bookNumber}.xlsx",
+                            'row' => $rowNumber,
+                            'student' => $studentName,
+                            'eskul' => $eskulName,
+                            'original_date' => $dateString,
+                            'parsed_date' => $date,
+                            'parsed_year' => $parsedYear
+                        ]);
+                    }
+
                     Attendance::updateOrCreate(
                         [
                             'eskul_id' => $eskul->id,
@@ -322,5 +306,41 @@ class AttendanceAndMemberSeeder extends Seeder
 
         $this->command->info("Import selesai untuk semua buku.");
         $this->command->info("Total Attendance: $totalAttendanceCreated, Total New Members: $totalMembersCreated, Total Skipped: $totalSkipped");
+    }
+
+    /**
+     * Strictly parse a date string against known formats and prevent rollover
+     * (e.g., interpreting month 25 as +2 years + 1 month). Returns array [Y-m-d, formatUsed].
+     */
+    private function parseDateStrict(string $input): array
+    {
+        $candidates = [
+            'd/m/Y', 'm/d/Y', 'd-m-Y', 'Y-m-d', 'Y/m/d'
+        ];
+
+        foreach ($candidates as $format) {
+            // Use '!' to reset non-specified fields and avoid bleed-over
+            $dt = \DateTime::createFromFormat('!' . $format, $input);
+            $errors = \DateTime::getLastErrors();
+            if (!$dt || ($errors['warning_count'] ?? 0) > 0 || ($errors['error_count'] ?? 0) > 0) {
+                continue;
+            }
+
+            // Round-trip check to ensure the same components (tolerate missing leading zeros)
+            $reformatted = $dt->format($format);
+            $normalize = static function (string $s): string {
+                // remove leading zeros in day/month segments for comparison
+                $s = preg_replace('/(^|[\\/\-])0+(\d)/', '$1$2', $s);
+                return $s;
+            };
+            if ($normalize($reformatted) !== $normalize($input)) {
+                // mismatch -> this format is not correct (prevents 10/25/2024 -> 2026-01-10 under d/m/Y)
+                continue;
+            }
+
+            return [$dt->format('Y-m-d'), $format];
+        }
+
+        throw new \InvalidArgumentException('Unrecognized or invalid date: ' . $input);
     }
 }
