@@ -7,6 +7,10 @@
         </div>
 
         <!-- Filters Section -->
+        <style>
+            .modal-overlay { display: none; }
+            .modal-overlay:target { display: block; }
+        </style>
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Filter Analisis</h2>
             
@@ -203,46 +207,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
                                         {{ $metric->student_name }}
-                                        <span class="relative group">
-                                            <button type="button" class="text-blue-600 text-xs underline">Detail</button>
-                                            <div class="hidden group-hover:block absolute z-10 left-0 mt-1 w-72 p-3 bg-white border border-gray-200 rounded shadow text-xs text-gray-700">
-                                                <div class="font-semibold mb-1">Rincian Perhitungan</div>
-                                                <div>
-                                                    Kehadiran = (Hadir / Total Pertemuan) × 100%<br>
-                                                    = ({{ $metric->att_present ?? 0 }} / {{ $metric->att_total ?? 0 }}) × 100%
-                                                </div>
-                                                <div class="mt-2">
-                                                    Partisipasi = (Ikut Event / Total Event) × 100%<br>
-                                                    = ({{ $metric->ev_participated ?? 0 }} / {{ $metric->ev_total ?? 0 }}) × 100%
-                                                </div>
-                                                <div class="mt-2">
-                                                    Prestasi dihitung dari rata-rata skor tiap prestasi (level & posisi). Jumlah prestasi periode ini: {{ $metric->ach_count ?? 0 }}
-                                                </div>
-                                                <div class="mt-3 pt-2 border-t">
-                                                    <div class="font-semibold mb-1">Detail K-Means</div>
-                                                    @php $dbg = $kmeansDebug[$metric->eskul_id] ?? null; @endphp
-                                                    @if($dbg)
-                                                        <div class="mb-1">Centroid awal:</div>
-                                                        <ul class="list-disc ml-4 space-y-0.5">
-                                                            @foreach(($dbg['initial_centroids'] ?? []) as $cent)
-                                                                @php $vals = array_map(function($v){ return is_numeric($v) ? number_format($v,1) : $v; }, $cent); @endphp
-                                                                <li class="text-xs">[{{ implode(', ', $vals) }}]</li>
-                                                            @endforeach
-                                                        </ul>
-                                                        <div class="mt-1 text-xs">Iterasi: {{ count($dbg['iterations'] ?? []) }}</div>
-                                                        <div class="mt-1">Centroid akhir:</div>
-                                                        <ul class="list-disc ml-4 space-y-0.5">
-                                                            @foreach(($dbg['final']['final_centroids'] ?? []) as $cent)
-                                                                @php $vals = array_map(function($v){ return is_numeric($v) ? number_format($v,1) : $v; }, $cent); @endphp
-                                                                <li class="text-xs">[{{ implode(', ', $vals) }}]</li>
-                                                            @endforeach
-                                                        </ul>
-                                                    @else
-                                                        <div class="text-gray-500 text-xs">Detail K-Means belum tersedia. Klik Analisis untuk menghasilkan.</div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </span>
+                                        
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $metric->nis }}</td>
@@ -308,7 +273,278 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Detail Perhitungan K-Means (format mirip Excel) -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-900">Detail Perhitungan K-Means</h2>
+                @php $eskulsOnPage = $studentMetrics->pluck('eskul_name','eskul_id')->unique(); @endphp
+                @foreach($eskulsOnPage as $eskulId => $eskulName)
+                    @php $dbg = $kmeansDebug[$eskulId] ?? null; @endphp
+                    <div class="mb-8">
+                        <h3 class="font-semibold text-gray-900 mb-2">{{ $eskulName }}</h3>
+                        @if($dbg)
+                            <!-- Tabel: Centroid Awal (Random) / Iterasi 1 -->
+                            <div class="mb-4">
+                                <div class="text-sm font-semibold mb-1">Centroid Awal (Random)</div>
+                                <div class="overflow-auto border rounded">
+                                    <table class="min-w-full text-xs">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left">C</th>
+                                                <th class="px-3 py-2 text-left">Nama Siswa</th>
+                                                <th class="px-3 py-2 text-right">Absensi</th>
+                                                <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                <th class="px-3 py-2 text-right">Prestasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(($dbg['initial_centroids'] ?? []) as $i => $cent)
+                                                @php $st = $dbg['initial_centroid_students'][$i] ?? null; @endphp
+                                                <tr class="border-t">
+                                                    <td class="px-3 py-1">C{{ $i+1 }}</td>
+                                                    <td class="px-3 py-1">{{ $st['student_name'] ?? '-' }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[0] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[1] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[2] ?? 0, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Iterasi -->
+                            @foreach(($dbg['iterations'] ?? []) as $iter)
+                                <div class="mb-6">
+                                    <div class="text-sm font-semibold mb-1">Iterasi {{ $iter['iteration'] }} — Jarak ke Centroid & Clustering</div>
+                                    <div class="overflow-auto border rounded">
+                                        <table class="min-w-full text-xs">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-left">Data ke i</th>
+                                                    <th class="px-3 py-2 text-left">Nama Siswa</th>
+                                                    <th class="px-3 py-2 text-right">Absensi</th>
+                                                    <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                    <th class="px-3 py-2 text-right">Prestasi</th>
+                                                    <th class="px-3 py-2 text-right">C1</th>
+                                                    <th class="px-3 py-2 text-right">C2</th>
+                                                    <th class="px-3 py-2 text-right">C3</th>
+                                                    <th class="px-3 py-2 text-left">Jarak Terdekat</th>
+                                                    <th class="px-3 py-2 text-left">Clustering</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php $studentsDbg = $dbg['students'] ?? []; @endphp
+                                                @foreach(($iter['distances'] ?? []) as $rowIdx => $dists)
+                                                    @php
+                                                        $stud = $studentsDbg[$rowIdx] ?? null;
+                                                        $vec = $stud['vector'] ?? [0,0,0];
+                                                        $c1 = number_format($dists[0] ?? 0, 2);
+                                                        $c2 = number_format($dists[1] ?? 0, 2);
+                                                        $c3 = number_format($dists[2] ?? 0, 2);
+                                                        $closest = $iter['assigned_clusters'][$rowIdx] ?? 0;
+                                                    @endphp
+                                                    <tr class="border-t">
+                                                        <td class="px-3 py-1">{{ $rowIdx + 1 }}</td>
+                                                        <td class="px-3 py-1">{{ $stud['student_name'] ?? '-' }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($vec[0] ?? 0, 2) }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($vec[1] ?? 0, 2) }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($vec[2] ?? 0, 2) }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c1 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c2 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c3 }}</td>
+                                                        <td class="px-3 py-1">C{{ ($closest + 1) }}</td>
+                                                        <td class="px-3 py-1">C{{ ($closest + 1) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- Jumlah anggota tiap cluster -->
+                                    @php $counts = array_count_values($iter['assigned_clusters'] ?? []); @endphp
+                                    <div class="text-xs text-gray-700 mt-2">Jumlah: C1 = {{ $counts[0] ?? 0 }}, C2 = {{ $counts[1] ?? 0 }}, C3 = {{ $counts[2] ?? 0 }}</div>
+                                </div>
+
+                                <!-- Centroid Baru untuk iterasi berikutnya (centroids_after) -->
+                                <div class="mb-8">
+                                    <div class="text-sm font-semibold mb-1">Centroid Baru (Iterasi {{ ($iter['iteration'] + 1) }})</div>
+                                    <div class="overflow-auto border rounded">
+                                        <table class="min-w-full text-xs">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-left">C</th>
+                                                    <th class="px-3 py-2 text-right">Absensi</th>
+                                                    <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                    <th class="px-3 py-2 text-right">Prestasi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach(($iter['centroids_after'] ?? []) as $i => $cent)
+                                                    <tr class="border-t">
+                                                        <td class="px-3 py-1">C{{ $i+1 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($cent[0] ?? 0, 2) }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($cent[1] ?? 0, 2) }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ number_format($cent[2] ?? 0, 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <!-- Centroid Akhir -->
+                            <div>
+                                <div class="text-sm font-semibold mb-1">Centroid Akhir</div>
+                                <div class="overflow-auto border rounded">
+                                    <table class="min-w-full text-xs">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left">C</th>
+                                                <th class="px-3 py-2 text-right">Absensi</th>
+                                                <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                <th class="px-3 py-2 text-right">Prestasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(($dbg['final']['final_centroids'] ?? []) as $i => $cent)
+                                                <tr class="border-t">
+                                                    <td class="px-3 py-1">C{{ $i+1 }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[0] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[1] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[2] ?? 0, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-gray-500 text-xs">Detail belum tersedia untuk eskul ini. Klik Analisis untuk menghasilkan.</div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
         </div>
         @endif
     </div>
 </div>
+
+@if($results)
+    @php $eskulsOnPage = $studentMetrics->pluck('eskul_name','eskul_id')->unique(); @endphp
+    @foreach($eskulsOnPage as $eskulId => $eskulName)
+        @php $dbg = $kmeansDebug[$eskulId] ?? null; @endphp
+        <div id="kmeans-{{ $eskulId }}" class="modal-overlay fixed inset-0 z-50 bg-black/50">
+            <div class="absolute inset-0 flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-6xl max-h-[85vh] overflow-auto rounded-lg shadow-xl">
+                    <div class="px-6 py-4 border-b flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Detail K-Means — {{ $eskulName }}</h3>
+                            <p class="text-xs text-gray-500">k = 3, jarak: Euclidean, pemilihan centroid awal: acak dari data.</p>
+                        </div>
+                        <a href="#" class="text-gray-500 hover:text-gray-700">Tutup ✕</a>
+                    </div>
+                    <div class="p-6 space-y-6 text-sm">
+                        @if($dbg)
+                            <div>
+                                <h4 class="font-semibold mb-2">Tabel III.2 — Penentuan Titik Pusat (Centroid) Iterasi 1</h4>
+                                <div class="overflow-auto border rounded">
+                                    <table class="min-w-full text-xs">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left">Centroid</th>
+                                                <th class="px-3 py-2 text-left">Nama Siswa</th>
+                                                <th class="px-3 py-2 text-right">Absensi</th>
+                                                <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                <th class="px-3 py-2 text-right">Prestasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(($dbg['initial_centroids'] ?? []) as $i => $cent)
+                                                @php $st = $dbg['initial_centroid_students'][$i] ?? null; @endphp
+                                                <tr class="border-t">
+                                                    <td class="px-3 py-1">C{{ $i+1 }}</td>
+                                                    <td class="px-3 py-1">{{ $st['student_name'] ?? '-' }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[0] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[1] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[2] ?? 0, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            @foreach(($dbg['iterations'] ?? []) as $iter)
+                                <div>
+                                    <h4 class="font-semibold mb-2">Tabel III.3/III.5 — Hasil Perhitungan Iterasi {{ $iter['iteration'] }}</h4>
+                                    <div class="overflow-auto border rounded">
+                                        <table class="min-w-full text-xs">
+                                            <thead class="bg-gray-50">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-left">Data ke i</th>
+                                                    <th class="px-3 py-2 text-right">C1</th>
+                                                    <th class="px-3 py-2 text-right">C2</th>
+                                                    <th class="px-3 py-2 text-right">C3</th>
+                                                    <th class="px-3 py-2 text-left">Terdekat</th>
+                                                    <th class="px-3 py-2 text-left">Clustering</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach(($iter['distances'] ?? []) as $rowIdx => $dists)
+                                                    @php
+                                                        $c1 = number_format($dists[0] ?? 0, 2);
+                                                        $c2 = number_format($dists[1] ?? 0, 2);
+                                                        $c3 = number_format($dists[2] ?? 0, 2);
+                                                        $minC = array_keys($dists, min($dists))[0] ?? 0;
+                                                    @endphp
+                                                    <tr class="border-t">
+                                                        <td class="px-3 py-1">{{ $rowIdx + 1 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c1 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c2 }}</td>
+                                                        <td class="px-3 py-1 text-right">{{ $c3 }}</td>
+                                                        <td class="px-3 py-1">{{ $minC === 0 ? '0,00' : ($minC === 1 ? '0,00' : '0,00') }}</td>
+                                                        <td class="px-3 py-1">C{{ $minC + 1 }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div>
+                                <h4 class="font-semibold mb-2">Tabel III.4 — Centroid Baru / Akhir</h4>
+                                <div class="overflow-auto border rounded">
+                                    <table class="min-w-full text-xs">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left">C</th>
+                                                <th class="px-3 py-2 text-right">Absensi</th>
+                                                <th class="px-3 py-2 text-right">Partisipasi</th>
+                                                <th class="px-3 py-2 text-right">Prestasi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach(($dbg['final']['final_centroids'] ?? []) as $i => $cent)
+                                                <tr class="border-t">
+                                                    <td class="px-3 py-1">C{{ $i+1 }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[0] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[1] ?? 0, 2) }}</td>
+                                                    <td class="px-3 py-1 text-right">{{ number_format($cent[2] ?? 0, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-gray-500 text-xs">Detail K-Means belum tersedia. Klik Analisis untuk menghasilkan.</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+@endif

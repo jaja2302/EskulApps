@@ -116,11 +116,16 @@ class KmeansService
     
     public function performClustering($eskulId)
     {
-        // Ambil semua data metrik siswa untuk tahun dan semester yang aktif
+        // Ambil semua data metrik siswa untuk tahun dan semester yang aktif beserta nama siswa
         $query = \DB::table('student_performance_metrics')
-            ->where('eskul_id', $eskulId)
-            ->where('year', $this->year)       // Tambahkan filter tahun
-            ->where('semester', $this->semester); // Tambahkan filter semester
+            ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
+            ->where('student_performance_metrics.eskul_id', $eskulId)
+            ->where('student_performance_metrics.year', $this->year)
+            ->where('student_performance_metrics.semester', $this->semester)
+            ->select(
+                'student_performance_metrics.*',
+                'users.name as student_name'
+            );
         
         // Jika ada filter bulan, batasi pada bulan tersebut
         if ($this->month !== null && $this->month !== '') {
@@ -147,19 +152,59 @@ class KmeansService
                 'month' => $this->month,
             ],
             'data_points' => $dataPoints,
+            'students' => $students->map(function($s) {
+                return [
+                    'student_id' => $s->student_id,
+                    'student_name' => $s->student_name,
+                    'vector' => [
+                        $s->attendance_score,
+                        $s->participation_score,
+                        $s->achievement_score,
+                    ],
+                ];
+            })->toArray(),
             'initial_centroids' => [],
+            'initial_centroid_indices' => [],
+            'initial_centroid_students' => [],
             'iterations' => [],
             'final' => [],
         ];
         
         // Inisialisasi centroids secara random
-        $centroids = $this->initializeCentroids($dataPoints);
+        $initialInfo = $this->initializeCentroids($dataPoints, true);
+        $centroids = $initialInfo['centroids'];
         $this->debug['initial_centroids'] = $centroids;
+        $this->debug['initial_centroid_indices'] = $initialInfo['indices'];
+        // Simpan juga nama siswa untuk centroid awal jika tersedia
+        $this->debug['initial_centroid_students'] = array_map(function($idx) use ($students) {
+            $s = $students[$idx] ?? null;
+            if (!$s) { return null; }
+            return [
+                'student_id' => $s->student_id,
+                'student_name' => $s->student_name,
+                'vector' => [
+                    $s->attendance_score,
+                    $s->participation_score,
+                    $s->achievement_score,
+                ],
+            ];
+        }, $this->debug['initial_centroid_indices']);
         
         // Iterasi K-means
         for ($i = 0; $i < $this->maxIterations; $i++) {
-            // Assign points ke cluster terdekat
-            $clusters = $this->assignClusters($dataPoints, $centroids);
+            // Hitung jarak setiap data point ke setiap centroid dan tentukan cluster terdekat
+            $clusters = [];
+            $distanceMatrix = [];
+            foreach ($dataPoints as $pi => $point) {
+                $distances = [];
+                foreach ($centroids as $cj => $centroid) {
+                    $distances[$cj] = $this->calculateDistance($point, $centroid);
+                }
+                $distanceMatrix[$pi] = $distances;
+                // pilih cluster dengan jarak minimum
+                $minCluster = array_keys($distances, min($distances))[0];
+                $clusters[$pi] = $minCluster;
+            }
             
             // Update posisi centroids
             $newCentroids = $this->updateCentroids($dataPoints, $clusters);
@@ -168,6 +213,7 @@ class KmeansService
                 'assigned_clusters' => $clusters,
                 'centroids_before' => $centroids,
                 'centroids_after' => $newCentroids,
+                'distances' => $distanceMatrix,
             ];
             
             // Cek konvergensi
@@ -229,17 +275,21 @@ class KmeansService
         $this->updateClusterResults($students, $mappedClusters);
     }
     
-    private function initializeCentroids($dataPoints)
+    private function initializeCentroids($dataPoints, $withIndices = false)
     {
         $centroids = [];
         $n = count($dataPoints);
         
         // Pilih K data point secara random sebagai centroid awal
         $randomKeys = array_rand($dataPoints, $this->k);
+        if (!is_array($randomKeys)) { $randomKeys = [$randomKeys]; }
         foreach ($randomKeys as $key) {
             $centroids[] = $dataPoints[$key];
         }
         
+        if ($withIndices) {
+            return ['centroids' => $centroids, 'indices' => array_values($randomKeys)];
+        }
         return $centroids;
     }
     
