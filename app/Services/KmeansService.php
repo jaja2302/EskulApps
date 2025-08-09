@@ -17,15 +17,16 @@ class KmeansService
     private $endDate;
     private $year;
     private $semester;
+    private $month; // Tambahan: simpan bulan yang difilter (opsional)
     
-    public function calculateMetrics($studentId, $eskulId, $year, $semester)
+    public function calculateMetrics($studentId, $eskulId, $year, $semester, $month = null)
     {
 
         // dd($year,$semester);
 
         // dd($studentId);
-        // Set periode berdasarkan tahun dan semester
-        $this->setPeriod($year, $semester);
+        // Set periode berdasarkan tahun, semester, dan opsional bulan
+        $this->setPeriod($year, $semester, $month);
 
         // dd( $this->setPeriod($year, $semester));
         
@@ -45,19 +46,26 @@ class KmeansService
         ];
     }
     
-    private function setPeriod($year, $semester)
+    private function setPeriod($year, $semester, $month = null)
     {
-        // Semester 1: Juli - Desember
-        // Semester 2: Januari - Juni
-        if ($semester == 1) {
-            $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
-            $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
+        // Jika bulan dipilih, gunakan rentang satu bulan tersebut dan abaikan rentang semester
+        if ($month !== null && $month !== '') {
+            $this->startDate = Carbon::create($year, (int) $month, 1)->startOfDay();
+            $this->endDate = Carbon::create($year, (int) $month, 1)->endOfMonth()->endOfDay();
         } else {
-            $this->startDate = Carbon::create($year, 1, 1)->startOfDay();
-            $this->endDate = Carbon::create($year, 6, 30)->endOfDay();
+            // Semester 1: Juli - Desember
+            // Semester 2: Januari - Juni
+            if ($semester == 1) {
+                $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
+                $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
+            } else {
+                $this->startDate = Carbon::create($year, 1, 1)->startOfDay();
+                $this->endDate = Carbon::create($year, 6, 30)->endOfDay();
+            }
         }
         $this->year = $year;
         $this->semester = $semester;
+        $this->month = $month;
     }
     
     private function calculateAttendanceScore($studentId, $eskulId)
@@ -138,12 +146,18 @@ class KmeansService
     public function performClustering($eskulId)
     {
         // Ambil semua data metrik siswa untuk tahun dan semester yang aktif
-        $students = \DB::table('student_performance_metrics')
+        $query = \DB::table('student_performance_metrics')
             ->where('eskul_id', $eskulId)
             ->where('year', $this->year)       // Tambahkan filter tahun
-            ->where('semester', $this->semester) // Tambahkan filter semester
-            ->get();
-            
+            ->where('semester', $this->semester); // Tambahkan filter semester
+        
+        // Jika ada filter bulan, batasi pada bulan tersebut
+        if ($this->month !== null && $this->month !== '') {
+            $query->where('month', $this->month);
+        }
+        
+        $students = $query->get();
+        
         // Persiapkan data points
         $dataPoints = $students->map(function($student) {
             return [
@@ -172,8 +186,45 @@ class KmeansService
             $centroids = $newCentroids;
         }
         
-        // Update hasil clustering ke database
-        $this->updateClusterResults($students, $clusters);
+        // Hitung centroid final berdasarkan assignment terakhir
+        $finalCentroids = $this->updateCentroids($dataPoints, $clusters);
+        $centroidAverages = [];
+        for ($i = 0; $i < $this->k; $i++) {
+            $avg = array_sum($finalCentroids[$i]) / (count($finalCentroids[$i]) ?: 1);
+            $centroidAverages[$i] = is_nan($avg) ? 0 : $avg;
+        }
+        
+        // Buat peta indeks: tertinggi -> 0, sedang -> 1, terendah -> 2
+        $sorted = $centroidAverages;
+        arsort($sorted); // descending
+        $labelMap = [];
+        $label = 0;
+        foreach (array_keys($sorted) as $originalIndex) {
+            $labelMap[$originalIndex] = $label;
+            $label++;
+        }
+        
+        // Edge case: bila semua rata-rata nyaris 0, paksa semua ke cluster terendah
+        $maxAvg = !empty($centroidAverages) ? max($centroidAverages) : 0;
+        $mappedClusters = [];
+        if ($maxAvg <= 0.000001) {
+            $mappedClusters = array_fill(0, count($clusters), 2);
+        } else {
+            foreach ($clusters as $idx => $clusterIndex) {
+                $mappedClusters[$idx] = $labelMap[$clusterIndex] ?? 2;
+            }
+        }
+        
+        // Override: jika semua metrik siswa nyaris 0, paksa cluster 2
+        $nearZero = 0.000001; // threshold sangat kecil untuk persentase
+        foreach ($dataPoints as $i => $point) {
+            if (max($point) <= $nearZero) {
+                $mappedClusters[$i] = 2;
+            }
+        }
+        
+        // Update hasil clustering ke database dengan indeks yang sudah dipetakan
+        $this->updateClusterResults($students, $mappedClusters);
     }
     
     private function initializeCentroids($dataPoints)
@@ -261,10 +312,17 @@ class KmeansService
     private function updateClusterResults($students, $clusters)
     {
         foreach ($students as $index => $student) {
-            \DB::table('student_performance_metrics')
+            $query = \DB::table('student_performance_metrics')
                 ->where('student_id', $student->student_id)
                 ->where('eskul_id', $student->eskul_id)
-                ->update(['cluster' => $clusters[$index]]);
+                ->where('year', $this->year)
+                ->where('semester', $this->semester);
+
+            if ($this->month !== null && $this->month !== '') {
+                $query->where('month', $this->month);
+            }
+
+            $query->update(['cluster' => $clusters[$index]]);
         }
     }
 } 

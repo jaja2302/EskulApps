@@ -3,7 +3,7 @@
 namespace App\Livewire\AnalisisApps;
 
 use Livewire\Component;
-use App\Services\KmeansServiceWithBobot;
+use App\Services\KmeansService;
 use App\Models\EskulMember;
 use App\Models\Eskul;
 use App\Models\User;
@@ -88,7 +88,7 @@ class DetailSiswa extends Component
 
     public function analyze()
     {
-        $kmeansService = new KmeansServiceWithBobot();
+        $kmeansService = new KmeansService();
         
         // Base query untuk mendapatkan siswa
         $query = EskulMember::with(['student', 'student.detail', 'eskul'])
@@ -133,9 +133,9 @@ class DetailSiswa extends Component
                         'month' => $this->selectedMonth
                     ],
                     [
-                        'attendance_score' => $metrics['raw_attendance_score'],
-                        'participation_score' => $metrics['raw_participation_score'],
-                        'achievement_score' => $metrics['raw_achievement_score'],
+                        'attendance_score' => $metrics['attendance_score'],
+                        'participation_score' => $metrics['participation_score'],
+                        'achievement_score' => $metrics['achievement_score'],
                     ]
                 );
         }

@@ -4,7 +4,6 @@ namespace App\Livewire\EksulApps;
 
 use Livewire\Component;
 use App\Services\KmeansService;
-use App\Services\KmeansServiceWithBobot;
 use App\Models\EskulMember;
 use App\Models\Eskul;
 use App\Models\User;
@@ -47,7 +46,6 @@ class EskulAnalisis extends Component
     public function analyze()
     {
         $kmeansService = new KmeansService();
-        // $kmeansService = new KmeansServiceWithBobot();
         
         // Get all active students in the eskul using relationship
         $students = EskulMember::with('student')
