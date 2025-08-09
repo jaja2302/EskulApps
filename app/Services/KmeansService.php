@@ -19,6 +19,9 @@ class KmeansService
     private $semester;
     private $month; // Tambahan: simpan bulan yang difilter (opsional)
     
+    // Kumpulan informasi debug untuk menampilkan detail proses K-Means
+    private $debug = [];
+    
     public function calculateMetrics($studentId, $eskulId, $year, $semester, $month = null)
     {
 
@@ -82,8 +85,8 @@ class KmeansService
             ->where('is_verified', 1)
             ->whereBetween('date', [$this->startDate, $this->endDate])
             ->count();
-        
-        return ($totalSessions > 0) ? ($presentCount / $totalSessions) * 100 : 0;
+        // Kembalikan JUMLAH kehadiran (bukan persentase) agar sesuai dengan tabel skripsi (mis. 4 0 0)
+        return $presentCount;
     }
     
     private function calculateParticipationScore($studentId, $eskulId)
@@ -98,49 +101,17 @@ class KmeansService
             $query->where('eskul_id', $eskulId)
                 ->whereBetween('start_datetime', [$this->startDate, $this->endDate]);
         })->where('student_id', $studentId)->count();
-        
-        return ($totalEvents > 0) ? ($participatedEvents / $totalEvents) * 100 : 0;
+        // Kembalikan JUMLAH partisipasi event (bukan persentase)
+        return $participatedEvents;
     }
     
     private function calculateAchievementScore($studentId, $eskulId)
     {
-        $achievements = Achievement::where('student_id', $studentId)
+        // Kembalikan JUMLAH prestasi agar konsisten dengan tabel skripsi (mis. 0)
+        return Achievement::where('student_id', $studentId)
             ->where('eskul_id', $eskulId)
             ->whereBetween('achievement_date', [$this->startDate, $this->endDate])
-            ->get();
-        
-        $totalScore = 0;
-        foreach ($achievements as $achievement) {
-            // Sesuaikan bobot level dengan format di database
-            $levelScore = match(strtolower($achievement->level)) {
-                'internasional' => 100,
-                'nasional' => 80,
-                'provinsi' => 60,
-                'kabupaten/kota' => 40,  // Sesuaikan dengan format di DB
-                'sekolah' => 20,
-                default => 0
-            };
-            
-            // Sesuaikan bobot posisi dengan format di database
-            $positionScore = match(strtolower($achievement->position)) {
-                'juara 1' => 100,
-                'juara 2' => 80,
-                'juara 3' => 60,
-                'harapan' => 40,
-                default => 20
-            };
-            
-            $totalScore += ($levelScore + $positionScore) / 2;
-        }
-        
-        // Tambahkan log untuk debugging
-        \Log::info("Achievement score calculation for student $studentId:", [
-            'achievements' => $achievements->toArray(),
-            'total_score' => $totalScore,
-            'final_score' => $achievements->count() > 0 ? min(100, $totalScore / $achievements->count()) : 0
-        ]);
-        
-        return $achievements->count() > 0 ? min(100, $totalScore / $achievements->count()) : 0;
+            ->count();
     }
     
     public function performClustering($eskulId)
@@ -167,8 +138,23 @@ class KmeansService
             ];
         })->toArray();
         
+        // Inisialisasi struktur debug
+        $this->debug = [
+            'eskul_id' => $eskulId,
+            'period' => [
+                'year' => $this->year,
+                'semester' => $this->semester,
+                'month' => $this->month,
+            ],
+            'data_points' => $dataPoints,
+            'initial_centroids' => [],
+            'iterations' => [],
+            'final' => [],
+        ];
+        
         // Inisialisasi centroids secara random
         $centroids = $this->initializeCentroids($dataPoints);
+        $this->debug['initial_centroids'] = $centroids;
         
         // Iterasi K-means
         for ($i = 0; $i < $this->maxIterations; $i++) {
@@ -177,6 +163,12 @@ class KmeansService
             
             // Update posisi centroids
             $newCentroids = $this->updateCentroids($dataPoints, $clusters);
+            $this->debug['iterations'][] = [
+                'iteration' => $i + 1,
+                'assigned_clusters' => $clusters,
+                'centroids_before' => $centroids,
+                'centroids_after' => $newCentroids,
+            ];
             
             // Cek konvergensi
             if ($this->hasConverged($centroids, $newCentroids)) {
@@ -222,6 +214,16 @@ class KmeansService
                 $mappedClusters[$i] = 2;
             }
         }
+        
+        // Simpan informasi final untuk debug & logging
+        $this->debug['final'] = [
+            'final_centroids' => $finalCentroids,
+            'centroid_averages' => $centroidAverages,
+            'label_map' => $labelMap,
+            'final_assigned_clusters' => $clusters,
+            'mapped_clusters' => $mappedClusters,
+        ];
+        \Log::info('[KMeans Debug] Eskul ' . $eskulId, $this->debug);
         
         // Update hasil clustering ke database dengan indeks yang sudah dipetakan
         $this->updateClusterResults($students, $mappedClusters);
@@ -324,5 +326,11 @@ class KmeansService
 
             $query->update(['cluster' => $clusters[$index]]);
         }
+    }
+
+    // Publikasi informasi debug untuk ditampilkan di UI jika diperlukan
+    public function getDebugInfo()
+    {
+        return $this->debug;
     }
 } 

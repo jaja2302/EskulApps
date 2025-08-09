@@ -30,6 +30,9 @@ class DetailSiswa extends Component
     // Properties untuk awards/penghargaan
     public $topPerformers = [];
     public $showAwards = false;
+    
+    // Debug info untuk menampilkan detail proses K-Means di UI
+    public $kmeansDebug = [];
 
     public function mount($hash = null)
     {
@@ -145,6 +148,8 @@ class DetailSiswa extends Component
         $eskulIds = $students->pluck('eskul_id')->unique();
         foreach ($eskulIds as $eskulId) {
             $kmeansService->performClustering($eskulId);
+            // Simpan informasi debug per eskul untuk ditampilkan di UI
+            $this->kmeansDebug[$eskulId] = $kmeansService->getDebugInfo();
         }
         
         // Get results with student details

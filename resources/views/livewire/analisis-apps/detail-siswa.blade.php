@@ -218,6 +218,29 @@
                                                 <div class="mt-2">
                                                     Prestasi dihitung dari rata-rata skor tiap prestasi (level & posisi). Jumlah prestasi periode ini: {{ $metric->ach_count ?? 0 }}
                                                 </div>
+                                                <div class="mt-3 pt-2 border-t">
+                                                    <div class="font-semibold mb-1">Detail K-Means</div>
+                                                    @php $dbg = $kmeansDebug[$metric->eskul_id] ?? null; @endphp
+                                                    @if($dbg)
+                                                        <div class="mb-1">Centroid awal:</div>
+                                                        <ul class="list-disc ml-4 space-y-0.5">
+                                                            @foreach(($dbg['initial_centroids'] ?? []) as $cent)
+                                                                @php $vals = array_map(function($v){ return is_numeric($v) ? number_format($v,1) : $v; }, $cent); @endphp
+                                                                <li class="text-xs">[{{ implode(', ', $vals) }}]</li>
+                                                            @endforeach
+                                                        </ul>
+                                                        <div class="mt-1 text-xs">Iterasi: {{ count($dbg['iterations'] ?? []) }}</div>
+                                                        <div class="mt-1">Centroid akhir:</div>
+                                                        <ul class="list-disc ml-4 space-y-0.5">
+                                                            @foreach(($dbg['final']['final_centroids'] ?? []) as $cent)
+                                                                @php $vals = array_map(function($v){ return is_numeric($v) ? number_format($v,1) : $v; }, $cent); @endphp
+                                                                <li class="text-xs">[{{ implode(', ', $vals) }}]</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @else
+                                                        <div class="text-gray-500 text-xs">Detail K-Means belum tersedia. Klik Analisis untuk menghasilkan.</div>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </span>
                                     </div>
