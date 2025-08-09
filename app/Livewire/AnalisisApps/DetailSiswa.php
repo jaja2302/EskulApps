@@ -362,7 +362,8 @@ class DetailSiswa extends Component
                 ->sortByDesc(function($student) {
                     return ($student->attendance_score + $student->participation_score + $student->achievement_score) / 3;
                 })
-                ->take(3);
+                ->take(3)
+                ->values();
                 
             foreach ($topStudents as $index => $student) {
                 $awards = ['Juara 1', 'Juara 2', 'Juara 3'];
