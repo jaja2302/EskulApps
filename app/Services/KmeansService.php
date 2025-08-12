@@ -24,22 +24,17 @@ class KmeansService
     
     public function calculateMetrics($studentId, $eskulId, $year, $semester, $month = null)
     {
-
-        // dd($year,$semester);
-
-        // dd($studentId);
         // Set periode berdasarkan tahun, semester, dan opsional bulan
         $this->setPeriod($year, $semester, $month);
-
-        // dd( $this->setPeriod($year, $semester));
         
-        // Hitung skor kehadiran
+        // Jika month = null (semester), hitung rata-rata dari semua bulan yang ada data
+        if ($month === null || $month === '') {
+            return $this->calculateSemesterAggregateMetrics($studentId, $eskulId, $year, $semester);
+        }
+        
+        // Hitung skor untuk bulan tertentu
         $attendanceScore = $this->calculateAttendanceScore($studentId, $eskulId);
-        // dd($attendanceScore);
-        // Hitung skor partisipasi
         $participationScore = $this->calculateParticipationScore($studentId, $eskulId);
-        
-        // Hitung skor prestasi
         $achievementScore = $this->calculateAchievementScore($studentId, $eskulId);
         
         return [
@@ -49,21 +44,107 @@ class KmeansService
         ];
     }
     
-    private function setPeriod($year, $semester, $month = null)
+    private function calculateSemesterAggregateMetrics($studentId, $eskulId, $year, $semester)
     {
-        // Jika bulan dipilih, gunakan rentang satu bulan tersebut dan abaikan rentang semester
+        // Hitung metrik untuk semua bulan dalam semester berdasarkan logika yang konsisten
+        $months = $semester == 1 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
+        
+        $totalAttendance = 0;
+        $totalParticipation = 0;
+        $totalAchievement = 0;
+        $monthsWithData = 0;
+        
+        \Log::info('[KMeans] Calculating semester aggregate', [
+            'semester' => $semester,
+            'months_to_check' => $months,
+            'student_id' => $studentId,
+            'eskul_id' => $eskulId
+        ]);
+        
+        foreach ($months as $month) {
+            // Set periode untuk bulan tertentu (tanpa validasi karena sudah konsisten)
+            $originalMonth = $this->month;
+            $originalStartDate = $this->startDate;
+            $originalEndDate = $this->endDate;
+            
+            // Set periode bulan tertentu
+            $this->startDate = Carbon::create($year, $month, 1)->startOfDay();
+            $this->endDate = Carbon::create($year, $month, 1)->endOfMonth()->endOfDay();
+            
+            // Hitung metrik bulan ini
+            $attendance = $this->calculateAttendanceScore($studentId, $eskulId);
+            $participation = $this->calculateParticipationScore($studentId, $eskulId);
+            $achievement = $this->calculateAchievementScore($studentId, $eskulId);
+            
+            // Log progress per bulan
+            \Log::debug('[KMeans] Month analysis', [
+                'month' => $month,
+                'attendance' => $attendance,
+                'participation' => $participation,
+                'achievement' => $achievement
+            ]);
+            
+            // Akumulasi data (termasuk bulan dengan nilai 0)
+            $totalAttendance += $attendance;
+            $totalParticipation += $participation;
+            $totalAchievement += $achievement;
+            
+            if ($attendance > 0 || $participation > 0 || $achievement > 0) {
+                $monthsWithData++;
+            }
+            
+            // Restore original values
+            $this->month = $originalMonth;
+            $this->startDate = $originalStartDate;
+            $this->endDate = $originalEndDate;
+        }
+        
+        \Log::info('[KMeans] Semester aggregate result', [
+            'total_attendance' => $totalAttendance,
+            'total_participation' => $totalParticipation,
+            'total_achievement' => $totalAchievement,
+            'months_with_data' => $monthsWithData
+        ]);
+        
+        // Kembalikan total untuk konsistensi dengan perhitungan bulanan
+        return [
+            'attendance_score' => $totalAttendance,
+            'participation_score' => $totalParticipation,
+            'achievement_score' => $totalAchievement,
+        ];
+    }
+    
+    public function setPeriod($year, $semester, $month = null)
+    {
+        // Validasi kombinasi semester dan bulan
+        if ($month !== null && $month !== '') {
+            $monthInt = (int) $month;
+            $semesterMonths = $semester == 1 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
+            
+            if (!in_array($monthInt, $semesterMonths)) {
+                \Log::warning('[KMeans] Invalid month-semester combination', [
+                    'month' => $month,
+                    'semester' => $semester,
+                    'valid_months' => $semesterMonths
+                ]);
+                // Fallback ke periode semester penuh jika kombinasi tidak valid
+                $month = null;
+            }
+        }
+        
+        // Jika bulan dipilih dan valid, gunakan rentang satu bulan tersebut
         if ($month !== null && $month !== '') {
             $this->startDate = Carbon::create($year, (int) $month, 1)->startOfDay();
             $this->endDate = Carbon::create($year, (int) $month, 1)->endOfMonth()->endOfDay();
         } else {
-            // Semester 1: Juli - Desember
-            // Semester 2: Januari - Juni
+            // Semester 1: Januari - Juni
+            // Semester 2: Juli - Desember
             if ($semester == 1) {
-                $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
-                $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
-            } else {
                 $this->startDate = Carbon::create($year, 1, 1)->startOfDay();
                 $this->endDate = Carbon::create($year, 6, 30)->endOfDay();
+            } else {
+                $this->startDate = Carbon::create($year, 7, 1)->startOfDay();
+                $this->endDate = Carbon::create($year, 12, 31)->endOfDay();
             }
         }
         $this->year = $year;
@@ -116,6 +197,11 @@ class KmeansService
     
     public function performClustering($eskulId, $filteredStudentIds = null)
     {
+        // Jika filter "semua bulan", perlu hitung ulang metrik agregat untuk semua siswa terlebih dahulu
+        if ($this->month === null || $this->month === '') {
+            $this->calculateAndStoreAggregateMetrics($eskulId, $filteredStudentIds);
+        }
+        
         // Ambil semua data metrik siswa untuk tahun dan semester yang aktif beserta nama siswa
         $query = \DB::table('student_performance_metrics')
             ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
@@ -141,6 +227,17 @@ class KmeansService
 
         $students = $query->get();
         
+        // Check if there are any students to cluster
+        if ($students->isEmpty()) {
+            \Log::warning('[KMeans] No students found for clustering', [
+                'eskul_id' => $eskulId,
+                'year' => $this->year,
+                'semester' => $this->semester,
+                'month' => $this->month
+            ]);
+            return; // Exit early if no data to cluster
+        }
+        
         // Persiapkan data points
         $dataPoints = $students->map(function($student) {
             return [
@@ -149,6 +246,15 @@ class KmeansService
                 $student->achievement_score
             ];
         })->toArray();
+        
+        // Double check for empty data points
+        if (empty($dataPoints)) {
+            \Log::warning('[KMeans] No data points generated for clustering', [
+                'eskul_id' => $eskulId,
+                'students_count' => $students->count()
+            ]);
+            return; // Exit early if no data points
+        }
         
         // Inisialisasi struktur debug
         $this->debug = [
@@ -307,6 +413,16 @@ class KmeansService
         $centroids = [];
         $n = count($dataPoints);
         
+        // Handle empty data points
+        if ($n == 0) {
+            // Return default centroids if no data
+            $defaultCentroids = array_fill(0, $this->k, [0, 0, 0]);
+            if ($withIndices) {
+                return ['centroids' => $defaultCentroids, 'indices' => []];
+            }
+            return $defaultCentroids;
+        }
+        
         if ($n < $this->k) {
             // Jika data points kurang dari k, duplikasi beberapa points
             for ($i = 0; $i < $this->k; $i++) {
@@ -457,6 +573,60 @@ class KmeansService
         return $this->debug;
     }
     
+    // Method untuk menghitung dan menyimpan metrik agregat semester
+    private function calculateAndStoreAggregateMetrics($eskulId, $filteredStudentIds = null)
+    {
+        // Ambil semua siswa aktif di eskul ini
+        $query = \DB::table('eskul_members')
+            ->join('users', 'users.id', '=', 'eskul_members.student_id')
+            ->where('eskul_members.eskul_id', $eskulId)
+            ->where('eskul_members.is_active', true)
+            ->select('eskul_members.student_id', 'users.name as student_name');
+        
+        // Jika ada filter siswa, batasi pada siswa tersebut
+        if (is_array($filteredStudentIds) && count($filteredStudentIds) > 0) {
+            $query->whereIn('eskul_members.student_id', $filteredStudentIds);
+        }
+        
+        $students = $query->get();
+        
+        foreach ($students as $student) {
+            // Hitung metrik agregat untuk siswa ini
+            $metrics = $this->calculateSemesterAggregateMetrics(
+                $student->student_id, 
+                $eskulId, 
+                $this->year, 
+                $this->semester
+            );
+            
+            // Simpan atau update metrik agregat (month = NULL untuk data semester)
+            \DB::table('student_performance_metrics')
+                ->updateOrInsert(
+                    [
+                        'student_id' => $student->student_id,
+                        'eskul_id' => $eskulId,
+                        'year' => $this->year,
+                        'semester' => $this->semester,
+                        'month' => null  // NULL untuk data agregat semester
+                    ],
+                    [
+                        'attendance_score' => $metrics['attendance_score'],
+                        'participation_score' => $metrics['participation_score'],
+                        'achievement_score' => $metrics['achievement_score'],
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]
+                );
+        }
+        
+        \Log::info('[KMeans] Calculated aggregate metrics for semester', [
+            'eskul_id' => $eskulId,
+            'year' => $this->year,
+            'semester' => $this->semester,
+            'students_count' => $students->count()
+        ]);
+    }
+    
     // Method untuk mendapatkan data detail untuk verifikasi manual
     public function getDetailedClusteringInfo($eskulId, $filteredStudentIds = null)
     {
@@ -506,8 +676,8 @@ class KmeansService
                 'year' => $this->year,
                 'semester' => $this->semester,
                 'month' => $this->month,
-                'start_date' => $this->startDate->format('Y-m-d'),
-                'end_date' => $this->endDate->format('Y-m-d'),
+                'start_date' => $this->startDate ? $this->startDate->format('Y-m-d') : null,
+                'end_date' => $this->endDate ? $this->endDate->format('Y-m-d') : null,
             ],
             'students' => $detailedInfo,
             'summary' => [
@@ -517,5 +687,46 @@ class KmeansService
                 'cluster_2_count' => count(array_filter($detailedInfo, fn($s) => $s['cluster'] == 2)),
             ]
         ];
+    }
+    
+    // Method untuk debug data aktivitas per bulan
+    public function debugActivityByMonth($eskulId, $year, $semester)
+    {
+        // Gunakan logika semester yang konsisten
+        $months = $semester == 1 ? [1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12];
+        $monthlyActivity = [];
+        
+        foreach ($months as $month) {
+            // Set periode langsung tanpa validasi (karena sudah konsisten)
+            $startDate = Carbon::create($year, $month, 1)->startOfDay();
+            $endDate = Carbon::create($year, $month, 1)->endOfMonth()->endOfDay();
+            
+            // Count attendances
+            $attendanceCount = Attendance::where('eskul_id', $eskulId)
+                ->whereBetween('date', [$startDate, $endDate])
+                ->count();
+            
+            // Count events
+            $eventCount = EskulEvent::where('eskul_id', $eskulId)
+                ->whereBetween('start_datetime', [$startDate, $endDate])
+                ->count();
+            
+            // Count participations
+            $participationCount = EskulEventParticipant::whereHas('event', function($query) use ($eskulId, $startDate, $endDate) {
+                $query->where('eskul_id', $eskulId)
+                    ->whereBetween('start_datetime', [$startDate, $endDate]);
+            })->count();
+            
+            $monthlyActivity[] = [
+                'month' => $month,
+                'month_name' => \Carbon\Carbon::create($year, $month, 1)->format('F'),
+                'period' => $startDate->format('Y-m-d') . ' to ' . $endDate->format('Y-m-d'),
+                'attendance_sessions' => $attendanceCount,
+                'events' => $eventCount,
+                'total_participations' => $participationCount,
+            ];
+        }
+        
+        return $monthlyActivity;
     }
 } 

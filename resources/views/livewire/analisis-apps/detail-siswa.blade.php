@@ -28,7 +28,7 @@
                 <!-- Semester -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Semester</label>
-                    <select wire:model="selectedSemester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select wire:model.live="selectedSemester" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="1">Semester 1</option>
                         <option value="2">Semester 2</option>
                     </select>
@@ -37,7 +37,7 @@
                 <!-- Bulan -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Bulan</label>
-                    <select wire:model="selectedMonth" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <select wire:model.live="selectedMonth" wire:key="month-select-{{ $selectedSemester }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Semua Bulan</option>
                         @foreach($months as $value => $name)
                             <option value="{{ $value }}">{{ $name }}</option>

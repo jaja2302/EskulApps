@@ -27,6 +27,9 @@ class DetailSiswa extends Component
     public $eskuls = [];
     public $months = [];
     
+    // Reactive property untuk memaksa re-render
+    public $monthsUpdated = 0;
+    
     // Properties untuk awards/penghargaan
     public $topPerformers = [];
     public $showAwards = false;
@@ -43,27 +46,14 @@ class DetailSiswa extends Component
         }
         
         $this->selectedYear = date('Y');
-        $this->selectedSemester = (date('n') > 6) ? 1 : 2;
+        $this->selectedSemester = (date('n') > 6) ? 2 : 1; // Jika bulan > 6 (Juli-Des) = Semester 2, sebaliknya Semester 1
         $this->selectedMonth = ''; // Default to all months
         
         // Get list of academic years
         $this->academicYears = range(date('Y')-2, date('Y'));
         
-        // Get available months
-        $this->months = [
-            1 => 'Januari',
-            2 => 'Februari', 
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember'
-        ];
+        // Load months based on semester
+        $this->loadAvailableMonths();
         
         // Get available classes
         $this->loadClasses();
@@ -88,6 +78,40 @@ class DetailSiswa extends Component
             ->get()
             ->pluck('name', 'id')
             ->toArray();
+    }
+
+    public function loadAvailableMonths()
+    {
+        // Filter bulan berdasarkan semester yang dipilih
+        if ($this->selectedSemester == 1) {
+            // Semester 1: Januari - Juni
+            $this->months = [
+                1 => 'Januari',
+                2 => 'Februari', 
+                3 => 'Maret',
+                4 => 'April',
+                5 => 'Mei',
+                6 => 'Juni'
+            ];
+        } else {
+            // Semester 2: Juli - Desember
+            $this->months = [
+                7 => 'Juli',
+                8 => 'Agustus',
+                9 => 'September',
+                10 => 'Oktober',
+                11 => 'November',
+                12 => 'Desember'
+            ];
+        }
+        
+        // Reset pilihan bulan jika bulan yang dipilih tidak valid untuk semester ini
+        if ($this->selectedMonth && !array_key_exists((int)$this->selectedMonth, $this->months)) {
+            $this->selectedMonth = '';
+        }
+        
+        // Increment reactive property untuk memaksa re-render
+        $this->monthsUpdated++;
     }
 
     public function analyze()
@@ -134,7 +158,7 @@ class DetailSiswa extends Component
                         'eskul_id' => $member->eskul_id,
                         'year' => $this->selectedYear,
                         'semester' => $this->selectedSemester,
-                            'month' => $this->selectedMonth !== '' ? $this->selectedMonth : null
+                            'month' => $this->selectedMonth !== '' ? (int)$this->selectedMonth : null
                     ],
                     [
                         'attendance_score' => $metrics['attendance_score'],
@@ -148,6 +172,11 @@ class DetailSiswa extends Component
         $eskulIds = $students->pluck('eskul_id')->unique();
         foreach ($eskulIds as $eskulId) {
             $studentIdsForEskul = $students->where('eskul_id', $eskulId)->pluck('student_id')->values()->all();
+            
+            // Set period pada KmeansService sebelum clustering
+            $monthParam = $this->selectedMonth !== '' ? (int)$this->selectedMonth : null;
+            $kmeansService->setPeriod($this->selectedYear, $this->selectedSemester, $monthParam);
+            
             $kmeansService->performClustering($eskulId, $studentIdsForEskul);
             // Simpan informasi debug per eskul untuk ditampilkan di UI, tetap sesuai filter
             $this->kmeansDebug[$eskulId] = $kmeansService->getDebugInfo();
@@ -166,6 +195,21 @@ class DetailSiswa extends Component
     }
 
     // Auto-reload results when filters change
+    public function updatedSelectedSemester()
+    {
+        // Update available months when semester changes
+        $this->loadAvailableMonths();
+        
+        // Force UI to refresh by dispatching an event
+        $this->dispatch('semester-changed');
+        
+        if ($this->results) {
+            $this->loadResults();
+            $this->calculateClusterStats();
+            $this->generateAwards();
+        }
+    }
+
     public function updatedSelectedClass()
     {
         if ($this->results) {
@@ -209,11 +253,13 @@ class DetailSiswa extends Component
             $end = Carbon::create($this->selectedYear, (int) $this->selectedMonth, 1)->endOfMonth()->endOfDay();
         } else {
             if ((int) $this->selectedSemester === 1) {
-                $start = Carbon::create($this->selectedYear, 7, 1)->startOfDay();
-                $end = Carbon::create($this->selectedYear, 12, 31)->endOfDay();
-            } else {
+                // Semester 1: Januari - Juni
                 $start = Carbon::create($this->selectedYear, 1, 1)->startOfDay();
                 $end = Carbon::create($this->selectedYear, 6, 30)->endOfDay();
+            } else {
+                // Semester 2: Juli - Desember
+                $start = Carbon::create($this->selectedYear, 7, 1)->startOfDay();
+                $end = Carbon::create($this->selectedYear, 12, 31)->endOfDay();
             }
         }
         return ['start' => $start, 'end' => $end];
@@ -234,7 +280,7 @@ class DetailSiswa extends Component
             
         // Add month filter if selected; otherwise gunakan agregat semester (month NULL)
         if ($this->selectedMonth && $this->selectedMonth !== '') {
-            $query->where('student_performance_metrics.month', $this->selectedMonth);
+            $query->where('student_performance_metrics.month', (int)$this->selectedMonth);
         } else {
             $query->whereNull('student_performance_metrics.month');
         }
