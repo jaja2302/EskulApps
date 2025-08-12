@@ -12,7 +12,7 @@ use Carbon\Carbon;
 class KmeansService
 {
     private $k = 3; // Jumlah cluster (misalnya: tinggi, sedang, rendah)
-    private $maxIterations = 100;
+    private $maxIterations = 50; // Mengurangi iterasi untuk performa dan konsistensi
     private $startDate;
     private $endDate;
     private $year;
@@ -233,26 +233,46 @@ class KmeansService
         
         // Hitung centroid final berdasarkan assignment terakhir
         $finalCentroids = $this->updateCentroids($dataPoints, $clusters);
+        
+        // Hitung rata-rata total score untuk setiap cluster
         $centroidAverages = [];
         for ($i = 0; $i < $this->k; $i++) {
-            $avg = array_sum($finalCentroids[$i]) / (count($finalCentroids[$i]) ?: 1);
-            $centroidAverages[$i] = is_nan($avg) ? 0 : $avg;
+            if (isset($finalCentroids[$i]) && is_array($finalCentroids[$i])) {
+                $avg = array_sum($finalCentroids[$i]) / (count($finalCentroids[$i]) ?: 1);
+                $centroidAverages[$i] = is_nan($avg) ? 0 : $avg;
+            } else {
+                $centroidAverages[$i] = 0;
+            }
         }
         
-        // Buat peta indeks: tertinggi -> 0, sedang -> 1, terendah -> 2
-        $sorted = $centroidAverages;
-        arsort($sorted); // descending
+        // Buat peta indeks yang lebih deterministik: tertinggi -> 0, sedang -> 1, terendah -> 2
+        $clusterInfo = [];
+        for ($i = 0; $i < $this->k; $i++) {
+            $clusterInfo[$i] = [
+                'index' => $i,
+                'average' => $centroidAverages[$i]
+            ];
+        }
+        
+        // Urutkan berdasarkan rata-rata (descending)
+        usort($clusterInfo, function($a, $b) {
+            if (abs($a['average'] - $b['average']) < 0.001) {
+                // Jika rata-rata hampir sama, urutkan berdasarkan index untuk konsistensi
+                return $a['index'] <=> $b['index'];
+            }
+            return $b['average'] <=> $a['average'];
+        });
+        
+        // Buat mapping: cluster dengan rata-rata tertinggi = 0, dst
         $labelMap = [];
-        $label = 0;
-        foreach (array_keys($sorted) as $originalIndex) {
-            $labelMap[$originalIndex] = $label;
-            $label++;
+        for ($i = 0; $i < count($clusterInfo); $i++) {
+            $labelMap[$clusterInfo[$i]['index']] = $i;
         }
         
         // Edge case: bila semua rata-rata nyaris 0, paksa semua ke cluster terendah
         $maxAvg = !empty($centroidAverages) ? max($centroidAverages) : 0;
         $mappedClusters = [];
-        if ($maxAvg <= 0.000001) {
+        if ($maxAvg <= 0.001) {
             $mappedClusters = array_fill(0, count($clusters), 2);
         } else {
             foreach ($clusters as $idx => $clusterIndex) {
@@ -260,11 +280,11 @@ class KmeansService
             }
         }
         
-        // Override: jika semua metrik siswa nyaris 0, paksa cluster 2
-        $nearZero = 0.000001; // threshold sangat kecil untuk persentase
+        // Override: jika semua metrik siswa nyaris 0, paksa cluster 2 (terendah)
+        $nearZero = 0.01; // threshold untuk nilai yang sangat kecil
         foreach ($dataPoints as $i => $point) {
             if (max($point) <= $nearZero) {
-                $mappedClusters[$i] = 2;
+                $mappedClusters[$i] = 2; // cluster terendah
             }
         }
         
@@ -287,15 +307,61 @@ class KmeansService
         $centroids = [];
         $n = count($dataPoints);
         
-        // Pilih K data point secara random sebagai centroid awal
-        $randomKeys = array_rand($dataPoints, $this->k);
-        if (!is_array($randomKeys)) { $randomKeys = [$randomKeys]; }
-        foreach ($randomKeys as $key) {
-            $centroids[] = $dataPoints[$key];
+        if ($n < $this->k) {
+            // Jika data points kurang dari k, duplikasi beberapa points
+            for ($i = 0; $i < $this->k; $i++) {
+                $centroids[] = $dataPoints[$i % $n];
+            }
+            if ($withIndices) {
+                $indices = [];
+                for ($i = 0; $i < $this->k; $i++) {
+                    $indices[] = $i % $n;
+                }
+                return ['centroids' => $centroids, 'indices' => $indices];
+            }
+            return $centroids;
+        }
+        
+        // Menggunakan metode deterministik untuk inisialisasi centroid
+        // Metode: Pilih titik dengan nilai tertinggi, sedang, dan terendah berdasarkan total score
+        $pointsWithScore = [];
+        foreach ($dataPoints as $idx => $point) {
+            $totalScore = array_sum($point);
+            $pointsWithScore[] = [
+                'index' => $idx,
+                'point' => $point,
+                'total_score' => $totalScore
+            ];
+        }
+        
+        // Urutkan berdasarkan total score
+        usort($pointsWithScore, function($a, $b) {
+            return $b['total_score'] <=> $a['total_score']; // descending
+        });
+        
+        $selectedIndices = [];
+        
+        if ($this->k == 3) {
+            // Untuk 3 cluster: ambil tertinggi, tengah, dan terendah
+            $selectedIndices[] = 0; // tertinggi
+            $selectedIndices[] = floor($n / 2); // tengah
+            $selectedIndices[] = $n - 1; // terendah
+        } else {
+            // Untuk k lainnya, bagi rata
+            for ($i = 0; $i < $this->k; $i++) {
+                $idx = floor($i * ($n - 1) / ($this->k - 1));
+                $selectedIndices[] = $idx;
+            }
+        }
+        
+        $actualIndices = [];
+        foreach ($selectedIndices as $idx) {
+            $centroids[] = $pointsWithScore[$idx]['point'];
+            $actualIndices[] = $pointsWithScore[$idx]['index'];
         }
         
         if ($withIndices) {
-            return ['centroids' => $centroids, 'indices' => array_values($randomKeys)];
+            return ['centroids' => $centroids, 'indices' => $actualIndices];
         }
         return $centroids;
     }
@@ -358,7 +424,7 @@ class KmeansService
         return $newCentroids;
     }
     
-    private function hasConverged($oldCentroids, $newCentroids, $tolerance = 0.0001)
+    private function hasConverged($oldCentroids, $newCentroids, $tolerance = 0.01)
     {
         for ($i = 0; $i < $this->k; $i++) {
             if ($this->calculateDistance($oldCentroids[$i], $newCentroids[$i]) > $tolerance) {
@@ -389,5 +455,67 @@ class KmeansService
     public function getDebugInfo()
     {
         return $this->debug;
+    }
+    
+    // Method untuk mendapatkan data detail untuk verifikasi manual
+    public function getDetailedClusteringInfo($eskulId, $filteredStudentIds = null)
+    {
+        // Ambil data yang sama seperti performClustering tapi dengan detail lengkap
+        $query = \DB::table('student_performance_metrics')
+            ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
+            ->where('student_performance_metrics.eskul_id', $eskulId)
+            ->where('student_performance_metrics.year', $this->year)
+            ->where('student_performance_metrics.semester', $this->semester)
+            ->select(
+                'student_performance_metrics.*',
+                'users.name as student_name'
+            );
+        
+        if ($this->month !== null && $this->month !== '') {
+            $query->where('month', $this->month);
+        } else {
+            $query->whereNull('month');
+        }
+        
+        if (is_array($filteredStudentIds) && count($filteredStudentIds) > 0) {
+            $query->whereIn('student_performance_metrics.student_id', $filteredStudentIds);
+        }
+
+        $students = $query->get();
+        
+        $detailedInfo = [];
+        foreach ($students as $student) {
+            $detailedInfo[] = [
+                'student_id' => $student->student_id,
+                'student_name' => $student->student_name,
+                'attendance_score' => $student->attendance_score,
+                'participation_score' => $student->participation_score,
+                'achievement_score' => $student->achievement_score,
+                'total_score' => $student->attendance_score + $student->participation_score + $student->achievement_score,
+                'cluster' => $student->cluster ?? null,
+            ];
+        }
+        
+        // Urutkan berdasarkan total score untuk memudahkan verifikasi
+        usort($detailedInfo, function($a, $b) {
+            return $b['total_score'] <=> $a['total_score'];
+        });
+        
+        return [
+            'period' => [
+                'year' => $this->year,
+                'semester' => $this->semester,
+                'month' => $this->month,
+                'start_date' => $this->startDate->format('Y-m-d'),
+                'end_date' => $this->endDate->format('Y-m-d'),
+            ],
+            'students' => $detailedInfo,
+            'summary' => [
+                'total_students' => count($detailedInfo),
+                'cluster_0_count' => count(array_filter($detailedInfo, fn($s) => $s['cluster'] == 0)),
+                'cluster_1_count' => count(array_filter($detailedInfo, fn($s) => $s['cluster'] == 1)),
+                'cluster_2_count' => count(array_filter($detailedInfo, fn($s) => $s['cluster'] == 2)),
+            ]
+        ];
     }
 } 
