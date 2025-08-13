@@ -89,49 +89,146 @@ SISTEM MANAJEMEN ESKUL - WORKFLOW DEVELOPMENT
       - Schedule view = Lihat jadwal kegiatan
       - Material access = Akses materi pembelajaran
 
-URUTAN PENGEMBANGAN:
-1. Minggu 1-2: Core System
-   - Setup project ✓
-   - Database migration ✓
-   - Authentication ✓
-   - Basic CRUD ✓
+# Dashboard Sistem Manajemen Ekstrakurikuler
 
-2. Minggu 3-4: Activity System
-   - Manajemen anggota
-   - Attendance system
-   - Event management
-   - Material management
+## Overview
+Dashboard ini telah diorganisir ulang menjadi layout yang lebih modular berdasarkan role pengguna. Setiap role memiliki tampilan yang disesuaikan dengan kebutuhan dan hak aksesnya.
 
-3. Minggu 5-6: Performance Recording
-   - Absensi digital
-   - Participation tracking
-   - Achievement recording
-   - Performance evaluation
+## Struktur File
 
-4. Minggu 7-8: K-means Integration
-   - Data collection system
-   - Metrics calculation
-   - K-means implementation
-   - Result storage
+### 1. Dashboard Utama
+- **File**: `resources/views/livewire/dashboard/dashboard.blade.php`
+- **Fungsi**: Layout utama yang memanggil partial berdasarkan role
 
-5. Minggu 9-10: Visualization
-   - Dashboard development
-   - Chart integration
-   - Report generation
-   - Export functionality
+### 2. Partial Views (Role-based)
+- **Admin**: `resources/views/livewire/dashboard/partials/admin-dashboard.blade.php`
+- **Pembimbing**: `resources/views/livewire/dashboard/partials/pembina-dashboard.blade.php`
+- **Pelatih**: `resources/views/livewire/dashboard/partials/pelatih-dashboard.blade.php`
+- **Siswa**: `resources/views/livewire/dashboard/partials/siswa-dashboard.blade.php`
 
-6. Minggu 11-12: Finalisasi
-   - Testing & debugging
-   - Optimization
-   - Documentation
-   - Deployment
+### 3. Controller
+- **File**: `app/Livewire/Dashboard/Dashboard.php`
+- **Fungsi**: Logic untuk generate data berdasarkan role
 
-TIPS PENGEMBANGAN:
-1. Selesaikan satu modul sebelum ke modul berikutnya
-2. Test setiap fitur sebelum lanjut
-3. Backup data secara regular
-4. Dokumentasikan setiap tahap
-5. Prioritaskan fitur essential
+## Fitur Dashboard per Role
+
+### 🎯 Admin Dashboard
+- **Statistik Global**: Total user, eskul, prestasi, peserta event
+- **Overview Sistem**: Manajemen user, eskul, monitoring sistem
+- **Quick Actions**: Akses cepat ke fitur admin
+- **Schedule & Announcements**: Jadwal dan pengumuman global
+
+### 📊 Pembimbing Dashboard
+- **Monitoring Statistics**: Eskul dibina, total prestasi, peserta event
+- **Pending Approvals**: Item yang perlu disetujui
+- **Monitoring & Approval**: Tools untuk monitoring aktivitas dan persetujuan
+- **Quick Actions**: Akses ke fitur pembimbing
+
+### 🏃 Pelatih Dashboard
+- **Coaching Statistics**: Eskul diampu, prestasi, peserta event, siswa aktif
+- **Coaching Tools**: 
+  - Kelola Eskul
+  - Tracking Siswa
+  - Analisis Performa (K-means)
+- **Quick Actions**: Akses ke fitur pelatih
+
+### 👨‍🎓 Siswa Dashboard (Fitur Lengkap)
+- **Overall Statistics**: Total eskul, progress overall, kehadiran, prestasi
+- **Monthly Attendance Chart**: Grafik kehadiran 6 bulan terakhir
+- **Detailed Eskul Statistics**: Statistik detail per ekstrakurikuler
+  - Progress per eskul
+  - Rate kehadiran
+  - Jumlah prestasi
+  - Total sesi dan sesi hadir
+  - Tanggal bergabung
+  - Terakhir hadir
+- **Recent Achievements**: Daftar prestasi terbaru dengan detail
+- **Quick Actions & Schedule**: Aksi cepat dan jadwal kegiatan
+
+## Data yang Ditampilkan
+
+### Untuk Siswa
+1. **Statistik Overall**
+   - Total ekstrakurikuler yang diikuti
+   - Progress keseluruhan (berdasarkan kehadiran + prestasi)
+   - Rate kehadiran total
+   - Total prestasi yang diraih
+
+2. **Statistik per Eskul**
+   - Nama ekstrakurikuler
+   - Progress individual
+   - Rate kehadiran per eskul
+   - Jumlah prestasi per eskul
+   - Total sesi dan sesi hadir
+   - Tanggal bergabung
+   - Terakhir hadir
+
+3. **Grafik Kehadiran**
+   - Data 6 bulan terakhir
+   - Visualisasi dengan bar chart
+   - Tooltip detail jumlah sesi
+
+4. **Prestasi Terbaru**
+   - Judul prestasi
+   - Deskripsi
+   - Ekstrakurikuler terkait
+   - Tanggal prestasi
+   - Level prestasi
+
+## Perhitungan Progress
+
+### Formula Progress per Eskul
+```
+Progress = (Rate Kehadiran × 0.7) + (Jumlah Prestasi × 10)
+```
+- **Kehadiran**: 70% bobot
+- **Prestasi**: 30% bobot (max 30 poin)
+
+### Formula Progress Overall
+```
+Progress Overall = Rata-rata progress semua eskul
+```
+
+## Keunggulan Layout Baru
+
+1. **Modular**: Setiap role memiliki file terpisah
+2. **Maintainable**: Mudah diubah tanpa mempengaruhi role lain
+3. **Scalable**: Bisa tambah fitur baru per role dengan mudah
+4. **Clean Code**: Kode lebih terorganisir dan mudah dibaca
+5. **Performance**: Hanya load data yang diperlukan per role
+
+## Cara Penggunaan
+
+1. **Login** dengan role yang sesuai
+2. **Dashboard** akan otomatis menampilkan layout sesuai role
+3. **Data** akan di-generate otomatis berdasarkan role
+4. **Refresh** data dengan tombol refresh di pojok kanan atas
+
+## Customization
+
+Untuk menambah fitur baru:
+1. Tambah property di controller `Dashboard.php`
+2. Tambah logic di method `generateData()`
+3. Update view partial yang sesuai
+4. Pastikan data tersedia untuk role yang dituju
+
+## Troubleshooting
+
+### Data tidak muncul
+- Cek apakah user memiliki role yang benar
+- Cek apakah data tersedia di database
+- Cek log error di `storage/logs/laravel.log`
+
+### Layout tidak sesuai
+- Pastikan file partial ada di direktori yang benar
+- Cek nama file dan path yang dipanggil
+- Clear cache view: `php artisan view:clear`
+
+### Performance lambat
+- Optimasi query database
+- Implementasi caching untuk data statis
+- Lazy loading untuk data yang tidak urgent
+
 
 DATABASE MIGRATION STATUS:
 ✓ users table (default Laravel)
