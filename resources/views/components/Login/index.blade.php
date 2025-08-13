@@ -7,7 +7,7 @@
             <div class="absolute top-1/2 -right-24 w-80 h-80 bg-indigo-500 opacity-20 rounded-full blur-3xl"></div>
             <div class="absolute bottom-12 left-1/4 w-72 h-72 bg-purple-500 opacity-20 rounded-full blur-3xl"></div>
         </div>
-        
+
         <!-- Konten Hero -->
         <div class="max-w-7xl mx-auto px-4 min-h-screen flex items-center pt-16 relative z-10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -16,24 +16,24 @@
                     <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">Temukan <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-purple-200">Passionmu</span></h1>
                     <p class="text-xl mb-8 text-blue-100 opacity-90">Bergabunglah dengan kegiatan ekstrakurikuler kami dan kembangkan bakatmu.</p>
                     <div class="space-x-4">
-                        <a href="#activities" 
-                           class="bg-white text-blue-600 px-6 py-3 rounded-full hover:bg-blue-50 font-medium inline-block hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl">
+                        <a href="#activities"
+                            class="bg-white text-blue-600 px-6 py-3 rounded-full hover:bg-blue-50 font-medium inline-block hover:-translate-y-1 transition-all duration-300 shadow-lg hover:shadow-xl">
                             Jelajahi Kegiatan
                         </a>
-                        <a href="/login" 
-                           class="border-2 border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-blue-600 font-medium inline-block hover:-translate-y-1 transition-all duration-300">
+                        <a href="/login"
+                            class="border-2 border-white text-white px-6 py-3 rounded-full hover:bg-white hover:text-blue-600 font-medium inline-block hover:-translate-y-1 transition-all duration-300">
                             Masuk
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Sisi Kanan -->
                 <div class="hidden md:block relative" data-aos="fade-left">
                     <div class="slideshow-container relative rounded-2xl shadow-2xl overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-t from-blue-900/30 to-transparent z-10"></div>
-                        <img src="{{ asset('images/people1.png') }}" alt="Siswa 1" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500">
-                        <img src="{{ asset('images/people2.png') }}" alt="Siswa 2" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500 hidden">
-                        <img src="{{ asset('images/people3.png') }}" alt="Siswa 3" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500 hidden">
+                        <img src="{{ asset('images/paskib.png') }}" alt="Siswa 1" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500">
+                        <img src="{{ asset('images/pmr.png') }}" alt="Siswa 2" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500 hidden">
+                        <img src="{{ asset('images/futsal.png') }}" alt="Siswa 3" class="slide w-full drop-shadow-2xl transform hover:scale-105 transition-transform duration-500 hidden">
                     </div>
                 </div>
             </div>
@@ -51,8 +51,8 @@
                 @foreach ($eskuls as $eskul)
                 <!-- Kegiatan Card -->
                 <div class="bg-white dark:bg-gray-700 rounded-xl shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 group"
-                     data-aos="fade-up"
-                     data-aos-delay="{{ $loop->index * 100 }}">
+                    data-aos="fade-up"
+                    data-aos-delay="{{ $loop->index * 100 }}">
                     <div class="h-48 relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
                         <img src="{{ Storage::url($eskul->image) }}" alt="{{ $eskul->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
@@ -63,9 +63,9 @@
                     <div class="p-6 dark:text-white">
                         <h3 class="font-bold text-xl mb-2">{{ $eskul->name }}</h3>
                         <p class="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">{{ $eskul->description }}</p>
-                        <a href="{{ route('guest.eskul.detail', $eskul->id) }}" 
-                           target="_blank"
-                           class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                        <a href="{{ route('guest.eskul.detail', $eskul->id) }}"
+                            target="_blank"
+                            class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
                             Lihat Detail
                         </a>
                     </div>
@@ -112,13 +112,13 @@
             </p>
             <div class="w-full rounded-xl overflow-hidden shadow-lg" data-aos="zoom-in">
                 <div class="aspect-w-16 aspect-h-9">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d703.9037492299082!2d98.69169174311523!3d3.614700952872009!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3031318f46af2455%3A0xcdec9dff370a9b89!2sSekolah%20Dasar%20Negeri%20No.%20064966!5e0!3m2!1sid!2sid!4v1735029184766!5m2!1sid!2sid"
-                        width="100%" 
-                        height="450" 
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy" 
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3982.042216951042!2d98.7126181!3d3.6334893!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x303131b7d87d49e1%3A0x1cdb3122b7ceb366!2sSMA%20Negeri%201%20Percut%20Sei%20Tuan!5e0!3m2!1sid!2sid!4v1693471932450!5m2!1sid!2sid"
+                        width="100%"
+                        height="450"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade"
                         class="w-full h-full">
                     </iframe>
@@ -181,4 +181,4 @@
             showSlides();
         }
     </script>
-</x-layouts.guest> 
+</x-layouts.guest>
