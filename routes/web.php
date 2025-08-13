@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/manage-users', Managementuser::class)->name('manageusers');
        
         Route::get('/user/profile/{hash}', Profiledetail::class)->name('user.profile');
-        Route::get('/dashboard/eskul/analisis/{hash}', EskulAnalisis::class)->name('eskul.analisis');
+      
     });
 
     Route::middleware(PermissionMiddleware::using('view eskul'))->group(function () {
@@ -49,11 +49,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard/eskul/schedule', ScheduleEskul::class)->name('eskul.schedule');
     });
 
-    Route::middleware(PermissionMiddleware::using('create event'))->group(function () {
-        Route::get('/dashboard/eskul/list-event/{hash}', DetailEvent::class)->name('eskul.list-event');
+    // Route yang bisa diakses semua role
+    Route::middleware(RoleMiddleware::using('pembimbing|pelatih|admin'))->group(function () {
+        Route::get('/dashboard/eskul/analisis/{hash}', EskulAnalisis::class)->name('eskul.analisis');
     });
 
-
+    // Route khusus pembimbing dan pelatih saja
+    Route::middleware(RoleMiddleware::using('pembimbing|pelatih'))->group(function () {
+        Route::get('/dashboard/eskul/list-event/{hash}', DetailEvent::class)->name('eskul.list-event');
+    });
 });
 
 Route::get('/eskul/{id}', [GuestDetailEskul::class, 'show'])->name('guest.eskul.detail');
