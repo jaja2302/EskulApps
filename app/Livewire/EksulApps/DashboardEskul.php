@@ -39,6 +39,7 @@ use App\Models\EskulGallery;
 use Filament\Forms\Components\DatePicker;
 use App\Models\EskulEvent;
 use Filament\Forms\Components\Toggle;
+use App\Imports\AttendanceImport;
 
 class DashboardEskul extends Component implements HasForms, HasTable
 {
@@ -50,9 +51,17 @@ class DashboardEskul extends Component implements HasForms, HasTable
 
         return $table
             ->query(function () {
-                if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('pembina') || auth()->user()->hasRole('pelatih')) {
+                if (auth()->user()->hasRole('admin')) {
                     // dd('admin');
                     return Eskul::query();
+                } else if (auth()->user()->hasRole('pembina')) {
+                    return Eskul::query()
+                        ->where('pembina_id', auth()->id())
+                        ->where('is_active', true);
+                } else if (auth()->user()->hasRole('pelatih')) {
+                    return Eskul::query()
+                        ->where('pelatih_id', auth()->id())
+                        ->where('is_active', true);
                 } else {
                     // dd('siswa');
                     // Get user's eskul IDs through the new relationship
@@ -101,66 +110,97 @@ class DashboardEskul extends Component implements HasForms, HasTable
             ])
             ->actions([
                 ActionGroup::make([
-                    Action::make('detail')
-                    ->label('Detail')
-                    ->visible(fn (): bool => auth()->user()->hasPermissionTo('view eskul'))
-                    ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('eskul.detail', ['hash' => HashHelper::encrypt($record->id)])),
-                    ActionGroup::make([
-                    Action::make('edit')
-                        ->label('Edit')
-                        ->form(formEskul())
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('edit eskul'))
-                        ->fillForm(fn (Eskul $record): array => [
-                            'name' => $record->name,
-                            'description' => $record->description,
-                            'image' => $record->image,
-                            'banner_image' => $record->banner_image,
-                            'quota' => $record->quota,
-                            'meeting_location' => $record->meeting_location,
-                            'requirements' => $record->requirements,
-                            'category' => $record->category,
-                            'pelatih_id' => $record->pelatih_id,
-                            'pembina_id' => $record->pembina_id,
+                        Action::make('detail')
+                        ->label('Detail')
+                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('view eskul'))
+                        ->icon('heroicon-o-eye')
+                        ->url(fn ($record) => route('eskul.detail', ['hash' => HashHelper::encrypt($record->id)])),
+                ActionGroup::make([
+                        Action::make('edit')
+                            ->label('Edit')
+                            ->form(formEskul())
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('edit eskul'))
+                            ->fillForm(fn (Eskul $record): array => [
+                                'name' => $record->name,
+                                'description' => $record->description,
+                                'image' => $record->image,
+                                'banner_image' => $record->banner_image,
+                                'quota' => $record->quota,
+                                'meeting_location' => $record->meeting_location,
+                                'requirements' => $record->requirements,
+                                'category' => $record->category,
+                                'pelatih_id' => $record->pelatih_id,
+                                'pembina_id' => $record->pembina_id,
+                            ])
+                            ->action(fn (Eskul $record, array $data) => $record->update($data))
+                            ->icon('heroicon-o-pencil'),
+                        Action::make('schedule')
+                            ->label('Tambah Jadwal')
+                            ->icon('heroicon-o-calendar')
+                            ->form(formSchedule())
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('create schedule'))
+                            ->modalHeading('Tambah Jadwal Eskul')
+                            ->action(function (Eskul $record, array $data) {
+                            
+                                // Handle each schedule in the repeater
+                                foreach ($data['schedules'] as $schedule) {
+                                    EskulSchedule::create([
+                                        'eskul_id' => $record->id,
+                                        'day' => $schedule['day'],
+                                        'start_time' => $schedule['start_time'],
+                                        'end_time' => $schedule['end_time'],
+                                        'location' => $schedule['location'],
+                                        'is_active' => true
+                                    ]);
+                                }
+            
+                                Notification::make()
+                                    ->success()
+                                    ->title('Jadwal berhasil ditambahkan')
+                                    ->body('Jadwal eskul telah berhasil disimpan.')
+                                    ->send();
+                            }),
+                        Action::make('attendance')
+                            ->label('Attendance')
+                            ->icon('heroicon-o-calendar')
+                            ->form(formAttendance())
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('create attendance'))
+                            ->modalHeading('Tambah Absensi Eskul')
+                            ->action(function (Eskul $record, array $data) {
+                               try {
+                                   // Create the import instance
+                                   $import = new AttendanceImport();
+                                   
+                                   // Import the file
+                                   Excel::import($import, $data['attendance']);
+                                   
+                                   // Get import statistics
+                                   $stats = $import->getStats();
+                                   
+                                   Notification::make()
+                                       ->title('Data imported successfully!')
+                                       ->body("Attendance: {$stats['attendanceCreated']}, New Members: {$stats['membersCreated']}, Skipped: {$stats['skipped']}")
+                                       ->success()
+                                       ->send();
+                               } catch (\Throwable $th) {
+                                   Notification::make()
+                                       ->title('Error importing data!')
+                                       ->body("Error: {$th->getMessage()}")
+                                       ->danger()
+                                       ->send();
+                               }
+                               
+                            }),
+                        DeleteAction::make()
+                            ->label('Hapus')
+                            ->icon('heroicon-o-trash')
+                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('delete eskul'))
+                            ->color('danger')
+                            ->action(fn ($record) => $record->delete())
                         ])
-                        ->action(fn (Eskul $record, array $data) => $record->update($data))
-                        ->icon('heroicon-o-pencil'),
-                    Action::make('schedule')
-                        ->label('Tambah Jadwal')
-                        ->icon('heroicon-o-calendar')
-                        ->form(formSchedule())
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('create schedule'))
-                        ->modalHeading('Tambah Jadwal Eskul')
-                        ->action(function (Eskul $record, array $data) {
-                         
-                            // Handle each schedule in the repeater
-                            foreach ($data['schedules'] as $schedule) {
-                                EskulSchedule::create([
-                                    'eskul_id' => $record->id,
-                                    'day' => $schedule['day'],
-                                    'start_time' => $schedule['start_time'],
-                                    'end_time' => $schedule['end_time'],
-                                    'location' => $schedule['location'],
-                                    'is_active' => true
-                                ]);
-                            }
-        
-                            Notification::make()
-                                ->success()
-                                ->title('Jadwal berhasil ditambahkan')
-                                ->body('Jadwal eskul telah berhasil disimpan.')
-                                ->send();
-                        }),
-                         DeleteAction::make()
-                        ->label('Hapus')
-                        ->icon('heroicon-o-trash')
-                        ->visible(fn (): bool => auth()->user()->hasPermissionTo('delete eskul'))
-                        ->color('danger')
-                        ->action(fn ($record) => $record->delete())
-                    ])
                     ->button()
                     ->label('Eskul Management'),
-                    ActionGroup::make([
+                ActionGroup::make([
                         Action::make('material_management')
                             ->label('Material Management')
                             ->icon('heroicon-o-calendar')
@@ -225,7 +265,7 @@ class DashboardEskul extends Component implements HasForms, HasTable
                         ])
                     ->button()
                     ->label('File Management'),
-                    ActionGroup::make([
+                ActionGroup::make([
                         Action::make('create_event')
                             ->label('Tambah Event')
                             ->icon('heroicon-o-calendar')

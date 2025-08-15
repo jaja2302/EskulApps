@@ -224,3 +224,20 @@ function formEvent(): array
         ];
     }
 }   
+
+if (!function_exists('formAttendance')) {
+function formAttendance(): array
+{
+    return [
+        FileUpload::make('attendance')
+            ->label('Upload Absensi')
+            ->directory('eskul/attendance')
+            ->required()
+            ->acceptedFileTypes(['text/csv', 'application/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])
+            ->storeFiles(false)
+            ->maxSize(10240)
+            ->required()
+            ->visibility('private'),
+    ];
+}
+}   
