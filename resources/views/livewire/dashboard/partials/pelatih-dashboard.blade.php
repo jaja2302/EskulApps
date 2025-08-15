@@ -122,12 +122,18 @@
                     Analisis Performa
                 </h4>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Analisis performa siswa dengan K-means</p>
-                <a href="#" class="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline">
-                    Akses
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </a>
+                @if($eskulPelatihId)
+                    <a href="{{ route('eskul.analisis', ['hash' => $eskulPelatihId]) }}" class="inline-flex items-center text-sm text-purple-600 dark:text-purple-400 hover:underline">
+                        Akses
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                @else
+                    <span class="inline-flex items-center text-sm text-gray-400 dark:text-gray-500">
+                        Tidak ada eskul yang diampu
+                    </span>
+                @endif
             </div>
         </div>
     </div>

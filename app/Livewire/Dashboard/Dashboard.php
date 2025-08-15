@@ -13,12 +13,14 @@ use App\Models\Attendance;
 use App\Models\EskulMember;
 use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
+use App\Helpers\HashHelper;
 
 class Dashboard extends Component
 {
 
     public $userCount;
     public $eskulCount;
+    public $eskulPelatihId;
     public $achievementCount;
     public $eventParticipantCount;
     public $pelatihCount;
@@ -34,6 +36,7 @@ class Dashboard extends Component
     public $attendanceRate;
     public $totalSessions;
     public $attendedSessions;
+
     
     public function mount()
     {
@@ -79,9 +82,12 @@ class Dashboard extends Component
         }
         elseif(auth()->user()->hasRole('pelatih')){
             $userId = auth()->user()->id;
-            
+            $eskulPelatih = Eskul::where('pelatih_id', $userId)->first();
             // Pelatih hanya melihat data yang terkait dengannya
             $this->eskulCount = Eskul::where('pelatih_id', $userId)->count();
+            $this->eskulPelatihId = $eskulPelatih ? HashHelper::encrypt($eskulPelatih->id) : null;
+
+            // dd($this->eskulPelatihId);
             
             // Changed to use eskul relationship to find achievements
             $this->achievementCount = Achievement::whereHas('eskul', function($query) use ($userId) {

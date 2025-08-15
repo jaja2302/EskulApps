@@ -200,71 +200,71 @@ class DashboardEskul extends Component implements HasForms, HasTable
                         ])
                     ->button()
                     ->label('Eskul Management'),
-                ActionGroup::make([
-                        Action::make('material_management')
-                            ->label('Material Management')
-                            ->icon('heroicon-o-calendar')
-                            ->form(formMaterial())
-                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
-                            ->action(function (Eskul $record, array $data) {
-                                EskulMaterial::create([
-                                    'eskul_id' => $record->id,
-                                    'uploaded_by' => auth()->id(),
-                                    'title' => $data['title'],
-                                    'description' => $data['description'],
-                                    'file_path' => $data['material'],
-                                    'file_type' => pathinfo($data['material'], PATHINFO_EXTENSION),
-                                ]);
+                // ActionGroup::make([
+                //         Action::make('material_management')
+                //             ->label('Material Management')
+                //             ->icon('heroicon-o-calendar')
+                //             ->form(formMaterial())
+                //             ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
+                //             ->action(function (Eskul $record, array $data) {
+                //                 EskulMaterial::create([
+                //                     'eskul_id' => $record->id,
+                //                     'uploaded_by' => auth()->id(),
+                //                     'title' => $data['title'],
+                //                     'description' => $data['description'],
+                //                     'file_path' => $data['material'],
+                //                     'file_type' => pathinfo($data['material'], PATHINFO_EXTENSION),
+                //                 ]);
 
-                                Notification::make()
-                                    ->success()
-                                    ->title('Material berhasil ditambahkan')
-                                    ->body('Material eskul telah berhasil disimpan.')
-                                    ->send();
+                //                 Notification::make()
+                //                     ->success()
+                //                     ->title('Material berhasil ditambahkan')
+                //                     ->body('Material eskul telah berhasil disimpan.')
+                //                     ->send();
                                 
-                            }),
-                        Action::make('gallery_management')
-                            ->label('Gallery Management')
-                            ->icon('heroicon-o-photo')
-                            ->form(formGallery())
-                            ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
-                            ->action(function (Eskul $record, array $data) {
-                                $link_video = null;
-                                $description_video = null;
+                //             }),
+                //         Action::make('gallery_management')
+                //             ->label('Gallery Management')
+                //             ->icon('heroicon-o-photo')
+                //             ->form(formGallery())
+                //             ->visible(fn (): bool => auth()->user()->hasPermissionTo('manage gallery'))
+                //             ->action(function (Eskul $record, array $data) {
+                //                 $link_video = null;
+                //                 $description_video = null;
                                 
-                                // dd($data);
+                //                 // dd($data);
                                 
-                                if (!empty($data['media_link'])) {
-                                    $link_video = implode(';', array_column($data['media_link'], 'link_video'));
-                                    $description_video = implode(';', array_column($data['media_link'], 'description_video'));
-                                }
+                //                 if (!empty($data['media_link'])) {
+                //                     $link_video = implode(';', array_column($data['media_link'], 'link_video'));
+                //                     $description_video = implode(';', array_column($data['media_link'], 'description_video'));
+                //                 }
                                 
-                                // dd([
-                                //     'data' => $data,
-                                //     'link_video' => $link_video,
-                                //     'description_video' => $description_video,
-                                // ]);
+                //                 // dd([
+                //                 //     'data' => $data,
+                //                 //     'link_video' => $link_video,
+                //                 //     'description_video' => $description_video,
+                //                 // ]);
                                 
-                                EskulGallery::create([
-                                    'eskul_id' => $record->id,
-                                    'uploaded_by' => auth()->id(),
-                                    'title' => $data['title'],
-                                    'description' => $data['description'],
-                                    'file_path' => $data['media'],
-                                    'event_date' => $data['event_date'],
-                                    'title_video' => $data['title_video'],
-                                    'description_video' => $description_video,
-                                    'link_video' => $link_video,
-                                ]);
+                //                 EskulGallery::create([
+                //                     'eskul_id' => $record->id,
+                //                     'uploaded_by' => auth()->id(),
+                //                     'title' => $data['title'],
+                //                     'description' => $data['description'],
+                //                     'file_path' => $data['media'],
+                //                     'event_date' => $data['event_date'],
+                //                     'title_video' => $data['title_video'],
+                //                     'description_video' => $description_video,
+                //                     'link_video' => $link_video,
+                //                 ]);
 
-                                Notification::make()
-                                    ->success()
-                                    ->title('Gallery item added successfully')
-                                    ->send();
-                            }),
-                        ])
-                    ->button()
-                    ->label('File Management'),
+                //                 Notification::make()
+                //                     ->success()
+                //                     ->title('Gallery item added successfully')
+                //                     ->send();
+                //             }),
+                //         ])
+                //     ->button()
+                //     ->label('File Management'),
                 ActionGroup::make([
                         Action::make('create_event')
                             ->label('Tambah Event')
