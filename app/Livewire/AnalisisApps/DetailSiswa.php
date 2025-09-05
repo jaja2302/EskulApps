@@ -17,6 +17,7 @@ class DetailSiswa extends Component
     public $selectedSemester;
     public $selectedMonth = '';
     public $selectedClass = '';
+    public $selectedSpecificClass = '';
     public $selectedEskul = '';
     public $selectedCluster = '';
     public $results = false;
@@ -24,6 +25,7 @@ class DetailSiswa extends Component
     public $clusterStats = [];
     public $academicYears = [];
     public $classes = [];
+    public $specificClasses = [];
     public $eskuls = [];
     public $months = [];
     
@@ -57,6 +59,7 @@ class DetailSiswa extends Component
         
         // Get available classes
         $this->loadClasses();
+        $this->loadSpecificClasses();
         
         // Get available eskuls
         $this->loadEskuls();
@@ -64,7 +67,14 @@ class DetailSiswa extends Component
 
     public function loadClasses()
     {
-        $this->classes = UserDetail::whereNotNull('class')
+        // Hardcoded general class values (tingkat kelas)
+        $this->classes = ['X', 'XI', 'XII'];
+    }
+
+    public function loadSpecificClasses()
+    {
+        // Load specific classes from database
+        $this->specificClasses = UserDetail::whereNotNull('class')
             ->distinct()
             ->pluck('class')
             ->sort()
@@ -78,6 +88,28 @@ class DetailSiswa extends Component
             ->get()
             ->pluck('name', 'id')
             ->toArray();
+    }
+
+    private function filterByGeneralClass($collection, $classField = 'class')
+    {
+        if (!$this->selectedClass) {
+            return $collection;
+        }
+
+        return $collection->filter(function($item) use ($classField) {
+            $className = $item->$classField ?? '';
+            
+            // Exact matching for general class filter
+            if ($this->selectedClass === 'X') {
+                return strpos($className, 'X ') === 0 || $className === 'X';
+            } elseif ($this->selectedClass === 'XI') {
+                return strpos($className, 'XI ') === 0 || $className === 'XI';
+            } elseif ($this->selectedClass === 'XII') {
+                return strpos($className, 'XII ') === 0 || $className === 'XII';
+            }
+            
+            return false;
+        });
     }
 
     public function loadAvailableMonths()
@@ -127,13 +159,30 @@ class DetailSiswa extends Component
             $query->where('eskul_id', $this->selectedEskul);
         }
         
-        if ($this->selectedClass) {
+        if ($this->selectedSpecificClass) {
             $query->whereHas('student.detail', function($q) {
-                $q->where('class', $this->selectedClass);
+                $q->where('class', $this->selectedSpecificClass);
             });
         }
         
         $students = $query->get();
+        
+        // Apply general class filter after query (post-query filtering)
+        if ($this->selectedClass) {
+            $students = $students->filter(function($member) {
+                $className = $member->student->detail->class ?? '';
+                
+                if ($this->selectedClass === 'X') {
+                    return strpos($className, 'X ') === 0 || $className === 'X';
+                } elseif ($this->selectedClass === 'XI') {
+                    return strpos($className, 'XI ') === 0 || $className === 'XI';
+                } elseif ($this->selectedClass === 'XII') {
+                    return strpos($className, 'XII ') === 0 || $className === 'XII';
+                }
+                
+                return false;
+            });
+        }
         
         if ($students->isEmpty()) {
             session()->flash('message', 'Tidak ada data siswa yang sesuai dengan filter yang dipilih.');
@@ -211,6 +260,15 @@ class DetailSiswa extends Component
     }
 
     public function updatedSelectedClass()
+    {
+        if ($this->results) {
+            $this->loadResults();
+            $this->calculateClusterStats();
+            $this->generateAwards();
+        }
+    }
+
+    public function updatedSelectedSpecificClass()
     {
         if ($this->results) {
             $this->loadResults();
@@ -342,8 +400,8 @@ class DetailSiswa extends Component
             $query->where('student_performance_metrics.eskul_id', $this->selectedEskul);
         }
         
-        if ($this->selectedClass) {
-            $query->where('user_details.class', $this->selectedClass);
+        if ($this->selectedSpecificClass) {
+            $query->where('user_details.class', $this->selectedSpecificClass);
         }
         
         if ($this->selectedCluster !== '') {
@@ -367,6 +425,23 @@ class DetailSiswa extends Component
             ->orderBy('user_details.class')
             ->orderBy('users.name')
             ->get();
+
+        // Apply general class filter after query (post-query filtering)
+        if ($this->selectedClass) {
+            $this->studentMetrics = $this->studentMetrics->filter(function($metric) {
+                $className = $metric->class ?? '';
+                
+                if ($this->selectedClass === 'X') {
+                    return strpos($className, 'X ') === 0 || $className === 'X';
+                } elseif ($this->selectedClass === 'XI') {
+                    return strpos($className, 'XI ') === 0 || $className === 'XI';
+                } elseif ($this->selectedClass === 'XII') {
+                    return strpos($className, 'XII ') === 0 || $className === 'XII';
+                }
+                
+                return false;
+            });
+        }
     }
 
     private function calculateClusterStats()

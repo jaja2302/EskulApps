@@ -14,7 +14,7 @@
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <h2 class="text-lg font-semibold mb-4 text-gray-900">Filter Analisis</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
                 <!-- Tahun Akademik -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Akademik</label>
@@ -45,12 +45,23 @@
                     </select>
                 </div>
 
-                <!-- Kelas -->
+                <!-- Kelas Umum -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Kelas Umum</label>
                     <select wire:model="selectedClass" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Semua Kelas</option>
+                        <option value="">Semua Tingkat</option>
                         @foreach($classes as $class)
+                        <option value="{{ $class }}">{{ $class }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Kelas Spesifik -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Kelas Spesifik</label>
+                    <select wire:model="selectedSpecificClass" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Semua Kelas</option>
+                        @foreach($specificClasses as $class)
                         <option value="{{ $class }}">{{ $class }}</option>
                         @endforeach
                     </select>
