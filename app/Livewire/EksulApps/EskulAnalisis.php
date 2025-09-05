@@ -93,7 +93,7 @@ class EskulAnalisis extends Component
 
         // Dispatch event dengan data untuk chart
         $this->dispatch('chartRender', [
-            'clusterStats' => $this->clusterStats,
+            'clusterStats' => array_values($this->clusterStats), // Convert to indexed array
             'studentMetrics' => $this->studentMetrics
         ]);
 
