@@ -45,6 +45,10 @@
                 @role('siswa')
                     @include('livewire.dashboard.partials.siswa-dashboard')
                 @endrole
+                
+                @role('pimpinan')
+                    @livewire('dashboard.pimpinan-dashboard')
+                @endrole
             </div>
         </div>
     </div>

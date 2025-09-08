@@ -563,6 +563,73 @@ class DetailSiswa extends Component
         session()->flash('message', 'Fitur export sedang dalam pengembangan.');
     }
 
+    // Methods untuk motivation form
+    public function openMotivationForm($studentId, $eskulId)
+    {
+        $this->selectedStudentForMotivation = [
+            'student_id' => $studentId,
+            'eskul_id' => $eskulId
+        ];
+        $this->showMotivationForm = true;
+        $this->motivationReason = '';
+        $this->recommendation = '';
+    }
+
+    public function closeMotivationForm()
+    {
+        $this->showMotivationForm = false;
+        $this->selectedStudentForMotivation = null;
+        $this->motivationReason = '';
+        $this->recommendation = '';
+    }
+
+    public function saveMotivationReport()
+    {
+        $this->validate([
+            'motivationReason' => 'required|string|min:10',
+            'recommendation' => 'required|string|min:10',
+        ], [
+            'motivationReason.required' => 'Alasan motivasi harus diisi',
+            'motivationReason.min' => 'Alasan motivasi minimal 10 karakter',
+            'recommendation.required' => 'Rekomendasi harus diisi',
+            'recommendation.min' => 'Rekomendasi minimal 10 karakter',
+        ]);
+
+        // Cari data student metrics untuk mendapatkan cluster dan scores
+        $studentMetric = $this->studentMetrics->where('student_id', $this->selectedStudentForMotivation['student_id'])
+            ->where('eskul_id', $this->selectedStudentForMotivation['eskul_id'])
+            ->first();
+
+        if (!$studentMetric) {
+            session()->flash('error', 'Data siswa tidak ditemukan.');
+            return;
+        }
+
+        // Simpan ke database
+        StudentMotivationReport::updateOrCreate(
+            [
+                'student_id' => $this->selectedStudentForMotivation['student_id'],
+                'eskul_id' => $this->selectedStudentForMotivation['eskul_id'],
+                'year' => $this->selectedYear,
+                'semester' => $this->selectedSemester,
+                'month' => $this->selectedMonth !== '' ? (int)$this->selectedMonth : null,
+            ],
+            [
+                'created_by' => auth()->id(),
+                'cluster' => $studentMetric->cluster,
+                'attendance_score' => $studentMetric->attendance_score,
+                'participation_score' => $studentMetric->participation_score,
+                'achievement_score' => $studentMetric->achievement_score,
+                'motivation_reason' => $this->motivationReason,
+                'recommendation' => $this->recommendation,
+                'status' => 'pending',
+            ]
+        );
+
+        session()->flash('message', 'Laporan motivasi berhasil disimpan.');
+        $this->closeMotivationForm();
+    }
+
     public function render()
     {
         return view('livewire.analisis-apps.detail-siswa');
