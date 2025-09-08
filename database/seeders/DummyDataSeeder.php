@@ -63,6 +63,14 @@ class DummyDataSeeder extends Seeder
             $pelatihs[] = $pelatih;
         }
 
+        // Create Pimpinan
+        $pimpinan = User::create([
+            'name' => 'Dr. H. Ahmad Suryadi, M.Pd',
+            'email' => 'pimpinan@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+        $pimpinan->assignRole('pimpinan');
+
         // Create Eskul
         $eskulData = [
             [

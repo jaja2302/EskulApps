@@ -188,5 +188,14 @@ class RoleAndPermissionSeeder extends Seeder
             'view achievements',
             'register eskul',
         ]);
+
+        // Pimpinan
+        $pimpinanRole = Role::create(['name' => 'pimpinan']);
+        $pimpinanRole->givePermissionTo([
+            'view evaluation',
+            'generate report',
+            'view statistics',
+            'export data',
+        ]);
     }
 } 

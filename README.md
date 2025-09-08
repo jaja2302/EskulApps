@@ -251,6 +251,9 @@ SEEDER STATUS:
 ✓ RoleAndPermissionSeeder
 ✓ DummyDataSeeder
 
+command cepat :
+php artisan migrate:fresh --seed
+
 COMMAND UNTUK SETUP:
 1. Fresh Install:
    php artisan migrate:fresh
@@ -260,6 +263,7 @@ COMMAND UNTUK SETUP:
    php artisan db:seed --class=DummyDataSeeder
    php artisan db:seed --class=AttendanceAndMemberSeeder
    php artisan db:seed --class=EventSeeder
+
 
 DEFAULT LOGIN:
 1. Admin:

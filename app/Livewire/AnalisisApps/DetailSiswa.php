@@ -8,6 +8,7 @@ use App\Models\EskulMember;
 use App\Models\Eskul;
 use App\Models\User;
 use App\Models\UserDetail;
+use App\Models\StudentMotivationReport;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -38,6 +39,12 @@ class DetailSiswa extends Component
     
     // Debug info untuk menampilkan detail proses K-Means di UI
     public $kmeansDebug = [];
+    
+    // Properties untuk motivation form
+    public $showMotivationForm = false;
+    public $selectedStudentForMotivation = null;
+    public $motivationReason = '';
+    public $recommendation = '';
 
     public function mount($hash = null)
     {
@@ -422,6 +429,7 @@ class DetailSiswa extends Component
                 DB::raw('MAX(student_performance_metrics.cluster) as cluster')
             )
             ->groupBy('student_performance_metrics.student_id', 'student_performance_metrics.eskul_id', 'users.name', 'user_details.class', 'user_details.nis', 'eskuls.name')
+            ->orderBy(DB::raw('MAX(student_performance_metrics.cluster)'))
             ->orderBy('user_details.class')
             ->orderBy('users.name')
             ->get();
