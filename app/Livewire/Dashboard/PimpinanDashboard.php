@@ -13,6 +13,8 @@ class PimpinanDashboard extends Component
     public $pendingReports = 0;
     public $studentsNeedMotivation = 0;
     public $recentReports;
+    public $showDetailModal = false;
+    public $selectedReport = null;
 
     public function mount()
     {
@@ -49,12 +51,31 @@ class PimpinanDashboard extends Component
 
     public function viewMotivationReports()
     {
-        // Redirect ke halaman laporan motivasi
-        return redirect()->route('motivation.reports');
+        // Redirect ke halaman analisis detail siswa untuk melihat laporan motivasi
+        return redirect()->route('analisis-apps.detail-siswa', 'global');
+    }
+
+    public function showReportDetail($reportId)
+    {
+        $this->selectedReport = StudentMotivationReport::with([
+            'student', 
+            'eskul', 
+            'createdBy'
+        ])->find($reportId);
+        
+        if ($this->selectedReport) {
+            $this->showDetailModal = true;
+        }
+    }
+
+    public function closeDetailModal()
+    {
+        $this->showDetailModal = false;
+        $this->selectedReport = null;
     }
 
     public function render()
     {
-        return view('livewire.dashboard.pimpinan-dashboard');
+        return view('livewire.dashboard.partials.pimpinan-dashboard');
     }
 }

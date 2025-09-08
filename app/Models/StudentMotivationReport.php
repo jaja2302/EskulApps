@@ -54,6 +54,7 @@ class StudentMotivationReport extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
+
     // Scopes
     public function scopeNeedsMotivation($query)
     {
