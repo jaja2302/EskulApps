@@ -13,8 +13,6 @@ class PimpinanDashboard extends Component
     public $pendingReports = 0;
     public $studentsNeedMotivation = 0;
     public $recentReports;
-    public $showDetailModal = false;
-    public $selectedReport = null;
 
     public function mount()
     {
@@ -57,21 +55,8 @@ class PimpinanDashboard extends Component
 
     public function showReportDetail($reportId)
     {
-        $this->selectedReport = StudentMotivationReport::with([
-            'student', 
-            'eskul', 
-            'createdBy'
-        ])->find($reportId);
-        
-        if ($this->selectedReport) {
-            $this->showDetailModal = true;
-        }
-    }
-
-    public function closeDetailModal()
-    {
-        $this->showDetailModal = false;
-        $this->selectedReport = null;
+        // Dispatch event to open modal in separate component
+        $this->dispatch('openReportDetail', $reportId);
     }
 
     public function render()
