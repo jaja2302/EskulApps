@@ -149,16 +149,125 @@
 
         <!-- Student List -->
         <div class="bg-white rounded-xl shadow-md p-2 md:p-4">
-            <h3 class="text-lg font-semibold mb-4 text-gray-800 px-2 md:px-0">Daftar Siswa</h3>
+            <div class="flex justify-between items-center mb-4 px-2 md:px-0">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Daftar Siswa</h3>
+                    <p class="text-xs text-gray-500 mt-1">Data semester {{ $selectedSemester }} {{ $selectedYear }} (agregat semester, tidak termasuk data bulanan)</p>
+                </div>
+                <div class="text-sm text-gray-500">
+                    <span class="inline-flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Klik header untuk mengurutkan
+                    </span>
+                </div>
+            </div>
             <div class="relative overflow-x-auto max-h-[400px] md:max-h-[500px] rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100 sticky top-0 z-10">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Nama</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Kehadiran</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Partisipasi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Prestasi</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Cluster</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">
+                                <button wire:click="sort('student_name')" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Nama</span>
+                                    @if($sortBy === 'student_name')
+                                        @if($sortDirection === 'asc')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @else
+                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">
+                                <button wire:click="sort('attendance_score')" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Kehadiran</span>
+                                    @if($sortBy === 'attendance_score')
+                                        @if($sortDirection === 'asc')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @else
+                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">
+                                <button wire:click="sort('participation_score')" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Partisipasi</span>
+                                    @if($sortBy === 'participation_score')
+                                        @if($sortDirection === 'asc')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @else
+                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">
+                                <button wire:click="sort('achievement_score')" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Prestasi</span>
+                                    @if($sortBy === 'achievement_score')
+                                        @if($sortDirection === 'asc')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @else
+                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">
+                                <button wire:click="sort('cluster')" class="flex items-center space-x-1 hover:text-gray-700">
+                                    <span>Cluster</span>
+                                    @if($sortBy === 'cluster')
+                                        @if($sortDirection === 'asc')
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        @endif
+                                    @else
+                                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+                                        </svg>
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-100">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -196,6 +305,19 @@
                                         Cluster {{ $metric->cluster + 1 }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($metric->cluster == 2)
+                                        <button wire:click="openMotivationForm({{ $metric->student_id }}, {{ $metric->eskul_id }})"
+                                            class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-200">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            Tambah Motivasi
+                                        </button>
+                                    @else
+                                        <span class="text-xs text-gray-500">-</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -204,6 +326,119 @@
         </div>
         @endif
     </div>
+
+    <!-- Flash Messages -->
+    @if (session()->has('message'))
+    <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-6" role="alert">
+        {{ session('message') }}
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6" role="alert">
+        {{ session('error') }}
+    </div>
+    @endif
+
+    <!-- Motivation Form Modal -->
+    @if($showMotivationForm)
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Tambah Laporan Motivasi</h3>
+                <button wire:click="closeMotivationForm" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form wire:submit.prevent="saveMotivationReport">
+                <div class="space-y-4">
+                    <!-- Student Info -->
+                    @if($selectedStudentForMotivation)
+                        @php
+                            $studentInfo = $studentMetrics->where('student_id', $selectedStudentForMotivation['student_id'])
+                                ->where('eskul_id', $selectedStudentForMotivation['eskul_id'])
+                                ->first();
+                        @endphp
+                        @if($studentInfo)
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-900 mb-2">Informasi Siswa</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Nama:</span>
+                                    <span class="font-medium">{{ $studentInfo->student_name }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Eskul:</span>
+                                    <span class="font-medium">{{ $selectedEskul->name }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Cluster:</span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">Perlu Motivasi</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Kehadiran:</span>
+                                    <span class="font-medium">{{ number_format($studentInfo->attendance_score, 1) }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    @endif
+
+                    <!-- Motivation Reason -->
+                    <div>
+                        <label for="motivationReason" class="block text-sm font-medium text-gray-700 mb-2">
+                            Alasan Perlu Motivasi <span class="text-red-500">*</span>
+                        </label>
+                        <textarea wire:model="motivationReason" 
+                            id="motivationReason"
+                            rows="4"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('motivationReason') border-red-300 @enderror"
+                            placeholder="Jelaskan alasan mengapa siswa ini perlu motivasi..."></textarea>
+                        @error('motivationReason')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Recommendation -->
+                    <div>
+                        <label for="recommendation" class="block text-sm font-medium text-gray-700 mb-2">
+                            Rekomendasi Perbaikan <span class="text-red-500">*</span>
+                        </label>
+                        <textarea wire:model="recommendation" 
+                            id="recommendation"
+                            rows="4"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('recommendation') border-red-300 @enderror"
+                            placeholder="Berikan rekomendasi untuk membantu siswa meningkatkan performa..."></textarea>
+                        @error('recommendation')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" wire:click="closeMotivationForm"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        wire:loading.attr="disabled"
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="saveMotivationReport">
+                            Simpan Laporan
+                        </span>
+                        <span wire:loading wire:target="saveMotivationReport">
+                            Menyimpan...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     <!-- ApexCharts CDN -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>

@@ -26,6 +26,12 @@ class EskulAnalisis extends Component
     public $pieChartBase64;
     public $barChartBase64;
     public $selectedEskul;
+    public $sortBy = 'cluster'; // Default sort by cluster
+    public $sortDirection = 'asc'; // Default ascending
+    public $showMotivationForm = false;
+    public $selectedStudentForMotivation = null;
+    public $motivationReason = '';
+    public $recommendation = '';
     protected $listeners = ['chartImageUpdated' => 'saveChartImage'];
     
     // public function mount($hash)
@@ -82,11 +88,27 @@ class EskulAnalisis extends Component
         // Perform clustering
         $kmeansService->performClustering($this->eskulId);
         
-        // Get results with student names
+        // Get results with student names (only semester data, not monthly)
+        // Use GROUP BY and MAX() to avoid duplicates like in DetailSiswa.php
         $this->studentMetrics = DB::table('student_performance_metrics')
             ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
             ->where('eskul_id', $this->eskulId)
-            ->select('users.name as student_name', 'student_performance_metrics.*')
+            ->where('year', $this->selectedYear)
+            ->where('semester', $this->selectedSemester)
+            ->whereNull('month') // Only get semester data, not monthly data
+            ->select(
+                'users.name as student_name',
+                'student_performance_metrics.student_id',
+                'student_performance_metrics.eskul_id',
+                DB::raw('MAX(student_performance_metrics.attendance_score) as attendance_score'),
+                DB::raw('MAX(student_performance_metrics.participation_score) as participation_score'),
+                DB::raw('MAX(student_performance_metrics.achievement_score) as achievement_score'),
+                DB::raw('MAX(student_performance_metrics.cluster) as cluster'),
+                DB::raw('MAX(student_performance_metrics.created_at) as created_at'),
+                DB::raw('MAX(student_performance_metrics.updated_at) as updated_at')
+            )
+            ->groupBy('student_performance_metrics.student_id', 'student_performance_metrics.eskul_id', 'users.name')
+            ->orderBy($this->sortBy, $this->sortDirection)
             ->get();
             
         $this->calculateClusterStats();
@@ -115,6 +137,86 @@ class EskulAnalisis extends Component
                     'avg_achievement' => $clusterMetrics->avg('achievement_score'),
                 ];
             }
+        }
+    }
+
+    public function sort($field)
+    {
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
+        
+        // Re-fetch data with proper sorting to avoid duplicates
+        $this->studentMetrics = DB::table('student_performance_metrics')
+            ->join('users', 'users.id', '=', 'student_performance_metrics.student_id')
+            ->where('eskul_id', $this->eskulId)
+            ->where('year', $this->selectedYear)
+            ->where('semester', $this->selectedSemester)
+            ->whereNull('month') // Only get semester data, not monthly data
+            ->select(
+                'users.name as student_name',
+                'student_performance_metrics.student_id',
+                'student_performance_metrics.eskul_id',
+                DB::raw('MAX(student_performance_metrics.attendance_score) as attendance_score'),
+                DB::raw('MAX(student_performance_metrics.participation_score) as participation_score'),
+                DB::raw('MAX(student_performance_metrics.achievement_score) as achievement_score'),
+                DB::raw('MAX(student_performance_metrics.cluster) as cluster'),
+                DB::raw('MAX(student_performance_metrics.created_at) as created_at'),
+                DB::raw('MAX(student_performance_metrics.updated_at) as updated_at')
+            )
+            ->groupBy('student_performance_metrics.student_id', 'student_performance_metrics.eskul_id', 'users.name')
+            ->orderBy($this->sortBy, $this->sortDirection)
+            ->get();
+    }
+
+    public function openMotivationForm($studentId, $eskulId)
+    {
+        $this->selectedStudentForMotivation = [
+            'student_id' => $studentId,
+            'eskul_id' => $eskulId
+        ];
+        $this->motivationReason = '';
+        $this->recommendation = '';
+        $this->showMotivationForm = true;
+    }
+
+    public function closeMotivationForm()
+    {
+        $this->showMotivationForm = false;
+        $this->selectedStudentForMotivation = null;
+        $this->motivationReason = '';
+        $this->recommendation = '';
+    }
+
+    public function saveMotivationReport()
+    {
+        $this->validate([
+            'motivationReason' => 'required|string|min:10',
+            'recommendation' => 'required|string|min:10',
+        ], [
+            'motivationReason.required' => 'Alasan motivasi harus diisi.',
+            'motivationReason.min' => 'Alasan motivasi minimal 10 karakter.',
+            'recommendation.required' => 'Rekomendasi harus diisi.',
+            'recommendation.min' => 'Rekomendasi minimal 10 karakter.',
+        ]);
+
+        try {
+            DB::table('student_motivation_reports')->insert([
+                'student_id' => $this->selectedStudentForMotivation['student_id'],
+                'eskul_id' => $this->selectedStudentForMotivation['eskul_id'],
+                'reason' => $this->motivationReason,
+                'recommendation' => $this->recommendation,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            session()->flash('message', 'Laporan motivasi berhasil disimpan.');
+            $this->closeMotivationForm();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal menyimpan laporan motivasi: ' . $e->getMessage());
         }
     }
 
