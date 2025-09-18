@@ -46,6 +46,15 @@ class DetailSiswa extends Component
     public $motivationReason = '';
     public $recommendation = '';
 
+    // Chart data properties
+    public $chartData = [];
+    public $clusterCounts = [0, 0, 0];
+    public $performanceData = [
+        'attendance' => [0, 0, 0],
+        'participation' => [0, 0, 0],
+        'achievement' => [0, 0, 0]
+    ];
+
     public function mount($hash = null)
     {
         // Handle global analysis or specific student analysis
@@ -469,6 +478,9 @@ class DetailSiswa extends Component
                 ];
             }
         }
+        
+        // Prepare chart data
+        $this->prepareChartData();
     }
     
     private function getClusterLabel($cluster)
@@ -479,6 +491,32 @@ class DetailSiswa extends Component
             2 => 'Perlu Motivasi',
             default => 'Unknown'
         };
+    }
+
+    private function prepareChartData()
+    {
+        // Reset chart data
+        $this->clusterCounts = [0, 0, 0];
+        $this->performanceData = [
+            'attendance' => [0, 0, 0],
+            'participation' => [0, 0, 0],
+            'achievement' => [0, 0, 0]
+        ];
+
+        // Prepare data for charts
+        foreach ($this->clusterStats as $cluster => $stats) {
+            $this->clusterCounts[$cluster] = $stats['count'];
+            $this->performanceData['attendance'][$cluster] = round($stats['avg_attendance'], 1);
+            $this->performanceData['participation'][$cluster] = round($stats['avg_participation'], 1);
+            $this->performanceData['achievement'][$cluster] = round($stats['avg_achievement'], 1);
+        }
+
+        // Dispatch event to update charts
+        $this->dispatch('chartRender', [
+            'clusterStats' => $this->clusterStats,
+            'clusterCounts' => $this->clusterCounts,
+            'performanceData' => $this->performanceData
+        ]);
     }
 
     private function generateAwards()

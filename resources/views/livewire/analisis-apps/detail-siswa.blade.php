@@ -147,6 +147,27 @@
         </div>
         @endif
 
+        <!-- Chart Section -->
+        @if($results)
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-900">Visualisasi Data</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-lg shadow p-4 h-[400px] md:h-96">
+                    <div class="flex justify-between mb-2">
+                        <h4 class="text-md font-medium text-gray-700">Distribusi Cluster</h4>
+                    </div>
+                    <div wire:ignore id="clusterDistribution" class="h-full"></div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4 h-[400px] md:h-96">
+                    <div class="flex justify-between mb-2">
+                        <h4 class="text-md font-medium text-gray-700">Performa Per Cluster</h4>
+                    </div>
+                    <div wire:ignore id="clusterPerformance" class="h-full"></div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Awards Section -->
         @if($results && $showAwards && !empty($topPerformers))
         <div class="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg shadow-sm p-6 mb-6 border border-yellow-200">
@@ -702,3 +723,343 @@
         </div>
     @endforeach
 @endif
+
+
+
+<script type="module">
+    document.addEventListener('livewire:init', function() {
+        // Check if ApexCharts is loaded
+        if (typeof ApexCharts === 'undefined') {
+            console.error('ApexCharts library not loaded!');
+            return;
+        }
+        
+        console.log('ApexCharts loaded successfully');
+        
+        let pieChart, barChart;
+        
+        // Create Pie Chart for Cluster Distribution
+        const pieOptions = {
+            series: [1, 1, 1], // Start with some data to ensure chart renders
+            chart: {
+                type: 'donut',
+                height: 320,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: false,
+                        zoomin: false,
+                        zoomout: false,
+                        pan: false,
+                        reset: false
+                    }
+                }
+            },
+            labels: ['Sangat Aktif', 'Cukup Aktif', 'Perlu Motivasi'],
+            colors: ['#10B981', '#FBBF24', '#EF4444'],
+            legend: {
+                position: 'bottom',
+                formatter: function(seriesName, opts) {
+                    return seriesName + ": " + opts.w.globals.series[opts.seriesIndex] + " siswa";
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val, opts) {
+                    const total = opts.w.globals.series.reduce((a, b) => a + b, 0);
+                    const percentage = ((opts.w.globals.series[opts.seriesIndex] / total) * 100).toFixed(1);
+                    return opts.w.globals.series[opts.seriesIndex] + ' (' + percentage + '%)';
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function(val) {
+                        return val + " siswa";
+                    }
+                }
+            }
+        };
+        
+        const barOptions = {
+            series: [
+                {
+                    name: 'Kehadiran',
+                    data: [1, 1, 1] // Start with some data to ensure chart renders
+                },
+                {
+                    name: 'Partisipasi',
+                    data: [1, 1, 1]
+                },
+                {
+                    name: 'Prestasi',
+                    data: [1, 1, 1]
+                }
+            ],
+            chart: {
+                type: 'bar',
+                height: 320,
+                stacked: false,
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true
+                    }
+                }
+            },
+            colors: ['#3B82F6', '#9333EA', '#F59E0B'],
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '55%',
+                    borderRadius: 2,
+                    dataLabels: {
+                        position: 'top'
+                    }
+                },
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val) {
+                    return Number(val).toFixed(1) + '%';
+                },
+                offsetY: -20,
+                style: {
+                    fontSize: '12px',
+                    colors: ["#304758"]
+                }
+            },
+            xaxis: {
+                categories: ['Sangat Aktif', 'Cukup Aktif', 'Perlu Motivasi'],
+            },
+            yaxis: {
+                title: {
+                    text: 'Persentase (%)'
+                },
+                max: 100,
+                min: 0,
+                tickAmount: 5,
+                labels: {
+                    formatter: function(val) {
+                        return Number(val).toFixed(1);
+                    }
+                }
+            },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                y: {
+                    formatter: function(val) {
+                        return Number(val).toFixed(1) + "%";
+                    }
+                }
+            },
+            legend: {
+                position: 'bottom'
+            }
+        };
+        
+        // Initialize charts
+        function initializeCharts() {
+            const pieElement = document.querySelector('#clusterDistribution');
+            const barElement = document.querySelector('#clusterPerformance');
+            
+            console.log('Looking for chart elements:', {
+                pieElement: pieElement,
+                barElement: barElement,
+                pieElementExists: !!pieElement,
+                barElementExists: !!barElement
+            });
+            
+            if (!pieElement || !barElement) {
+                console.error('Chart elements not found!', {
+                    pieElement: !!pieElement,
+                    barElement: !!barElement
+                });
+                return;
+            }
+            
+            // Clear existing content
+            pieElement.innerHTML = '';
+            barElement.innerHTML = '';
+            
+            // Only destroy charts if they exist and are not already destroyed
+            if (pieChart && !pieChart.w.globals.dom.baseEl.classList.contains('apexcharts-destroyed')) {
+                pieChart.destroy();
+                pieChart = null;
+            }
+            if (barChart && !barChart.w.globals.dom.baseEl.classList.contains('apexcharts-destroyed')) {
+                barChart.destroy();
+                barChart = null;
+            }
+            
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                try {
+                    pieChart = new ApexCharts(pieElement, pieOptions);
+                    barChart = new ApexCharts(barElement, barOptions);
+                    
+                    pieChart.render().then(() => {
+                        console.log('Pie chart rendered successfully');
+                        // Update with real data if available
+                        if (window.chartData && window.chartData.clusterCounts) {
+                            pieChart.updateSeries(window.chartData.clusterCounts);
+                        }
+                    }).catch(error => {
+                        console.error('Error rendering pie chart:', error);
+                    });
+                    
+                    barChart.render().then(() => {
+                        console.log('Bar chart rendered successfully');
+                        // Update with real data if available
+                        if (window.chartData && window.chartData.performanceData) {
+                            barChart.updateSeries(window.chartData.performanceData);
+                        }
+                    }).catch(error => {
+                        console.error('Error rendering bar chart:', error);
+                    });
+                } catch (error) {
+                    console.error('Error creating charts:', error);
+                }
+            }, 100);
+        }
+        
+        // Initialize charts immediately
+        initializeCharts();
+        
+        // Fallback: re-initialize charts if they fail to render
+        setTimeout(() => {
+            if (!pieChart || !barChart) {
+                console.log('Charts not initialized, retrying...');
+                initializeCharts();
+            }
+        }, 1000);
+        
+        // Event listener for chart updates
+        Livewire.on('chartRender', (data) => {
+            console.log('Chart render event received:', data);
+            
+            try {
+                // Data berupa array dengan satu elemen, ambil elemen pertama
+                const eventData = Array.isArray(data) ? data[0] : data;
+                
+                if (!eventData || !eventData.clusterStats) {
+                    console.error('Invalid data received:', eventData);
+                    return;
+                }
+                
+                // Update pie chart data
+                const clusterCounts = [0, 0, 0];
+                
+                // clusterStats adalah array, bukan object
+                if (Array.isArray(eventData.clusterStats)) {
+                    eventData.clusterStats.forEach((stats, index) => {
+                        if (index >= 0 && index < 3) {
+                            clusterCounts[index] = stats.count || 0;
+                        }
+                    });
+                } else {
+                    // Fallback untuk object format
+                    Object.entries(eventData.clusterStats).forEach(([cluster, stats]) => {
+                        const clusterIndex = parseInt(cluster);
+                        if (!isNaN(clusterIndex) && clusterIndex >= 0 && clusterIndex < 3) {
+                            clusterCounts[clusterIndex] = stats.count || 0;
+                        }
+                    });
+                }
+                
+                console.log('Cluster counts:', clusterCounts);
+                
+                // Update bar chart data
+                const attendance = [0, 0, 0];
+                const participation = [0, 0, 0];
+                const achievement = [0, 0, 0];
+                
+                if (Array.isArray(eventData.clusterStats)) {
+                    eventData.clusterStats.forEach((stats, index) => {
+                        if (index >= 0 && index < 3) {
+                            attendance[index] = parseFloat(stats.avg_attendance) || 0;
+                            participation[index] = parseFloat(stats.avg_participation) || 0;
+                            achievement[index] = parseFloat(stats.avg_achievement) || 0;
+                        }
+                    });
+                } else {
+                    // Fallback untuk object format
+                    Object.entries(eventData.clusterStats).forEach(([cluster, stats]) => {
+                        const clusterIndex = parseInt(cluster);
+                        if (!isNaN(clusterIndex) && clusterIndex >= 0 && clusterIndex < 3) {
+                            attendance[clusterIndex] = parseFloat(stats.avg_attendance) || 0;
+                            participation[clusterIndex] = parseFloat(stats.avg_participation) || 0;
+                            achievement[clusterIndex] = parseFloat(stats.avg_achievement) || 0;
+                        }
+                    });
+                }
+                
+                console.log('Performance data:', {
+                    attendance,
+                    participation,
+                    achievement
+                });
+                
+                // Store chart data in window object for persistence
+                window.chartData = {
+                    clusterCounts: clusterCounts,
+                    performanceData: [
+                        { name: 'Kehadiran', data: attendance },
+                        { name: 'Partisipasi', data: participation },
+                        { name: 'Prestasi', data: achievement }
+                    ]
+                };
+                
+                // Update charts with a small delay to ensure they're ready
+                setTimeout(() => {
+                    if (pieChart && !pieChart.w.globals.dom.baseEl.classList.contains('apexcharts-destroyed')) {
+                        pieChart.updateSeries(clusterCounts).then(() => {
+                            console.log('Pie chart updated successfully');
+                        }).catch(error => {
+                            console.error('Error updating pie chart:', error);
+                        });
+                    } else {
+                        console.log('Pie chart not available for update, re-initializing...');
+                        initializeCharts();
+                        // Update with data after re-initialization
+                        setTimeout(() => {
+                            if (pieChart) {
+                                pieChart.updateSeries(clusterCounts);
+                            }
+                        }, 500);
+                    }
+                    
+                    if (barChart && !barChart.w.globals.dom.baseEl.classList.contains('apexcharts-destroyed')) {
+                        barChart.updateSeries([
+                            { name: 'Kehadiran', data: attendance },
+                            { name: 'Partisipasi', data: participation },
+                            { name: 'Prestasi', data: achievement }
+                        ]).then(() => {
+                            console.log('Bar chart updated successfully');
+                        }).catch(error => {
+                            console.error('Error updating bar chart:', error);
+                        });
+                    } else {
+                        console.log('Bar chart not available for update, re-initializing...');
+                        initializeCharts();
+                        // Update with data after re-initialization
+                        setTimeout(() => {
+                            if (barChart) {
+                                barChart.updateSeries([
+                                    { name: 'Kehadiran', data: attendance },
+                                    { name: 'Partisipasi', data: participation },
+                                    { name: 'Prestasi', data: achievement }
+                                ]);
+                            }
+                        }, 500);
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        });
+    });
+</script>
