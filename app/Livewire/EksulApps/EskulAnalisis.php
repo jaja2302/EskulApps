@@ -194,21 +194,40 @@ class EskulAnalisis extends Component
     public function saveMotivationReport()
     {
         $this->validate([
-            'motivationReason' => 'required|string|min:10',
-            'recommendation' => 'required|string|min:10',
+            'motivationReason' => 'required|string|min:5',
+            'recommendation' => 'required|string|min:5',
         ], [
             'motivationReason.required' => 'Alasan motivasi harus diisi.',
-            'motivationReason.min' => 'Alasan motivasi minimal 10 karakter.',
+            'motivationReason.min' => 'Alasan motivasi minimal 5 karakter.',
             'recommendation.required' => 'Rekomendasi harus diisi.',
-            'recommendation.min' => 'Rekomendasi minimal 10 karakter.',
+            'recommendation.min' => 'Rekomendasi minimal 5 karakter.',
         ]);
+
+        // Cari data student metrics untuk mendapatkan cluster dan scores
+        $studentMetric = $this->studentMetrics->where('student_id', $this->selectedStudentForMotivation['student_id'])
+            ->where('eskul_id', $this->selectedStudentForMotivation['eskul_id'])
+            ->first();
+
+        if (!$studentMetric) {
+            session()->flash('error', 'Data siswa tidak ditemukan.');
+            return;
+        }
 
         try {
             DB::table('student_motivation_reports')->insert([
                 'student_id' => $this->selectedStudentForMotivation['student_id'],
                 'eskul_id' => $this->selectedStudentForMotivation['eskul_id'],
-                'reason' => $this->motivationReason,
+                'created_by' => auth()->id(),
+                'year' => $this->selectedYear,
+                'semester' => $this->selectedSemester,
+                'month' => null,
+                'cluster' => $studentMetric->cluster,
+                'attendance_score' => $studentMetric->attendance_score,
+                'participation_score' => $studentMetric->participation_score,
+                'achievement_score' => $studentMetric->achievement_score,
+                'motivation_reason' => $this->motivationReason,
                 'recommendation' => $this->recommendation,
+                'status' => 'pending',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
